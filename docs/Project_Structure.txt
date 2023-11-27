@@ -15,6 +15,11 @@ The project is organized like such: (has hierarchy)
 
 Image Holders
 	- holds an image and can return an image
+	- imageInfo: a dictionary
+		ImageType : "Raw", "Segmented", "FullAnalysis"
+		Name 
+		
+	
 
 Image Grabber
 	- Given a location, reads in an image
