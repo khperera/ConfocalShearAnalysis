@@ -1,0 +1,21 @@
+#!binbash
+
+# This script installs project dependencies.
+
+# Check if virtual environment exists, if not create one
+if [ ! -d venv ]; then
+    echo Creating a virtual environment...
+    python -m venv venv
+fi
+
+# Activate the virtual environment
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Inform the user
+echo Dependencies installed successfully. Virtual environment activated.
+
+# Deactivate the virtual environment when done
+deactivate
