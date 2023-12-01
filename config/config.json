@@ -1,6 +1,6 @@
 {
   "ImageSaver": {
-    "DataStorageLocation": "../data/"
+    "DataStorageLocation": "./data/testImage/"
   },
   "api_key": "my_api_key",
   "debug_mode": true

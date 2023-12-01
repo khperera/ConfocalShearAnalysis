@@ -1,6 +1,6 @@
 import sys
 #sys.path.insert(0, '../src')
-from src.core import ImageHolder, ImageGrabber
+from src.core import ImageHolder, ImageGrabber, ImageSaver
 import unittest
 
 class TestImageModule(unittest.TestCase):
@@ -35,6 +35,16 @@ class TestImageModule(unittest.TestCase):
             assert False
         else:
             assert True
+
+    def test_imageSave(self):
+        testlocation = "./tests/TestData/testImage.jpg"
+        imageReader = ImageHolder.ImageHolder()
+        imageGrabber1 = ImageGrabber.ImageGrabber()
+        imageSaver = ImageSaver.ImageSaver()
+
+        imageGrabber1.readLocation(testlocation)
+        imageReader.storeImage(imageGrabber1.returnImage())
+        self.assertTrue(imageSaver.saveImage(imageReader))
 
     #False test           
     def test_False(self):

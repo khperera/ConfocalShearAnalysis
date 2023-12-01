@@ -4,7 +4,7 @@ class ImageHolder:
 
     def __init__(self):
         self.img = np.zeros((1), dtype=np.uint8)
-        self.imgInfo = {"ImageType" : "None", "Name" : "None"}
+        self.imgInfo = {"ImageType" : "Default", "Name" : "Default"}
 
     #deletes the image and information about the image
     def __del__(self):
