@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 import os
+
+#given a location, loads an image.
 class ImageGrabber:
     def __init__(self):
         self.imageLocation = ""

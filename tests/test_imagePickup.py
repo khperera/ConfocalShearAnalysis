@@ -43,7 +43,7 @@ class TestImageModule(unittest.TestCase):
         imageSaver = ImageSaver.ImageSaver()
 
         imageGrabber1.readLocation(testlocation)
-        imageReader.storeImage(imageGrabber1.returnImage())
+        imageReader.storeImage(imageGrabber1.returnImage(),{"ImageType":"Raw","Name":"TestImage"})
         self.assertTrue(imageSaver.saveImage(imageReader))
 
     #False test           

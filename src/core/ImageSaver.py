@@ -1,9 +1,9 @@
 import json
 import os
 import cv2
-#import data
 
-#saves an imageHolder to a folder
+
+#class for saving image from an image holder to a location.
 class ImageSaver:
     def __init__(self,config_file_path = "./config/config.json"):
         config_file_path = os.path.abspath(config_file_path)

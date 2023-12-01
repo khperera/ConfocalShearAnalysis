@@ -1,4 +1,7 @@
 import numpy as np
+
+
+
 #a class that holds an image and information about an image.
 class ImageHolder:
 
@@ -12,11 +15,12 @@ class ImageHolder:
         del self.imgInfo
 
     #takes in a numpy array that represents an image
-    def storeImage(self, img):
+    def storeImage(self, img, imgInfo = {"ImageType" : "Default", "Name" : "Default"}):
         self.img = img
+        self.imgInfo = imgInfo
 
     #stores the image info
-    def storeImageInfo(self,imgInfo):
+    def storeImageInfo(self,imgInfo = {"ImageType" : "Default", "Name" : "Default"}):
         self.imgInfo = imgInfo
 
     #returns the image
@@ -27,5 +31,6 @@ class ImageHolder:
     def returnImageInfo(self):
         return self.imgInfo
     
+    #returns the size of each dimension of an image
     def returnImageSize(self):
         return self.img.shape
