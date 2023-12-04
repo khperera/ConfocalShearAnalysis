@@ -54,10 +54,15 @@ class TestImageModule(unittest.TestCase):
         imageSaver = ImageSaver.ImageSaver()
 
         imageGrabber1.readLocation(testlocation)
+        imageReader.storeImage(imageGrabber1.returnImage(),{"ImageType":"Raw","Name":"TestImage"})
+        imageSaver.saveImage(imageReader)
 
         ImageSegmentor1 = ImageSegmentor.imageSegment()
 
-        ImageSegmentor1.applySegmentation(imageGrabber1)
+        ImageSegmentor1.applySegmentation(imageReader)
+        
+        imageSaver.saveImage(imageReader)
+        
         assert True
 
     #False test           
