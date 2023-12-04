@@ -1,6 +1,6 @@
 import sys
 #sys.path.insert(0, '../src')
-from src.core import ImageHolder, ImageGrabber, ImageSaver
+from src.core import ImageHolder, ImageGrabber, ImageSaver, ImageSegmentor
 import unittest
 
 class TestImageModule(unittest.TestCase):
@@ -45,6 +45,20 @@ class TestImageModule(unittest.TestCase):
         imageGrabber1.readLocation(testlocation)
         imageReader.storeImage(imageGrabber1.returnImage(),{"ImageType":"Raw","Name":"TestImage"})
         self.assertTrue(imageSaver.saveImage(imageReader))
+
+    #checks if the image segmentor initializes
+    def test_imageSegmentorInit(self):
+        testlocation = "./tests/TestData/testImage.jpg"
+        imageReader = ImageHolder.ImageHolder()
+        imageGrabber1 = ImageGrabber.ImageGrabber()
+        imageSaver = ImageSaver.ImageSaver()
+
+        imageGrabber1.readLocation(testlocation)
+
+        ImageSegmentor1 = ImageSegmentor.imageSegment()
+
+        ImageSegmentor1.applySegmentation(imageGrabber1)
+        assert True
 
     #False test           
     def test_False(self):

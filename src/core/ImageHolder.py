@@ -7,7 +7,7 @@ class ImageHolder:
 
     def __init__(self):
         self.img = np.zeros((1), dtype=np.uint8)
-        self.imgInfo = {"ImageType" : "Default", "Name" : "Default"}
+        self.imgInfo = {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,}
 
     #deletes the image and information about the image
     def __del__(self):
@@ -15,12 +15,12 @@ class ImageHolder:
         del self.imgInfo
 
     #takes in a numpy array that represents an image
-    def storeImage(self, img, imgInfo = {"ImageType" : "Default", "Name" : "Default"}):
+    def storeImage(self, img, imgInfo =  {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,}):
         self.img = img
         self.imgInfo = imgInfo
 
     #stores the image info
-    def storeImageInfo(self,imgInfo = {"ImageType" : "Default", "Name" : "Default"}):
+    def storeImageInfo(self,imgInfo =  {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,}):
         self.imgInfo = imgInfo
 
     #returns the image
