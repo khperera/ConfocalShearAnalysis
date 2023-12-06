@@ -1,7 +1,5 @@
 #import modules
-from src.core import ImageGrabber
-
+from src.core import ImageGrabber, ImageHolder,ImageSaver,ImageSegmentor
 def main():
     #some functions
-    Thing1 = ImageGrabber()
-    
+    pass

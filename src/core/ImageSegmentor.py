@@ -77,6 +77,20 @@ class imageSegment():
                                       cv2.ADAPTIVE_THRESH_MEAN_C,
                                       cv2.THRESH_BINARY,
                                       blockSize, C)
+        
+
+# adaptive threshold wrapper
+    def adaptiveThreshold(self,params = {"maxValue":255,"blockSize":401,"C":10}):
+
+        maxValue = params["maxValue"]
+        blockSize = params["blockSize"]
+        C = params["C"]
+
+        self.img = cv2.adaptiveThreshold(self.img,
+                                      maxValue,
+                                      cv2.ADAPTIVE_THRESH_MEAN_C,
+                                      cv2.THRESH_BINARY,
+                                      blockSize, C)
 ####################################################################################################
 #utils
 

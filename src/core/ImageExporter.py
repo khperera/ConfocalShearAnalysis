@@ -4,8 +4,8 @@ import cv2
 
 
 #class for saving image from an image holder to a location.
-class ImageSaver:
-    def __init__(self,config_file_path = "./config/config.json"):
+class ImageExporter:
+    def __init__(self,config_file_path = "./config/defaultconfig.json"):
         config_file_path = os.path.abspath(config_file_path)
 
         if not os.path.exists(config_file_path):

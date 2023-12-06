@@ -2,10 +2,11 @@ import cv2
 import numpy as np
 import os
 
-#given a location, loads an image.
-class ImageGrabber:
-    def __init__(self):
-        self.imageLocation = ""
+#given a location, loads an image. 
+
+class ImageImporter:
+    def __init__(self, imageLocation = ""):
+        self.imageLocation = imageLocation
 
 
     #user command to give a location, then give an image back

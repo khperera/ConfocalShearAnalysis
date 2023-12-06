@@ -5,9 +5,9 @@ import numpy as np
 #a class that holds an image and information about an image.
 class ImageHolder:
 
-    def __init__(self):
-        self.img = np.zeros((1), dtype=np.uint8)
-        self.imgInfo = {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,}
+    def __init__(self, img = np.zeros((1), dtype=np.uint8), imgData = {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,}):
+        self.img = img
+        self.imgInfo = imgData
 
     #deletes the image and information about the image
     def __del__(self):
