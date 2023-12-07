@@ -17,7 +17,7 @@ class ImageSegment():
 
     def __init__(self,config_file_path = "./config/segementingConfig.json"):
         
-        #load in configuration files. 
+        #load in configuration files.
         config_file_path = os.path.abspath(config_file_path)
 
         if not os.path.exists(config_file_path):

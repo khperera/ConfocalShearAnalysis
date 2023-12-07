@@ -5,6 +5,7 @@ Module for developing a class to export files to user specifed location
 import json
 import os
 import cv2
+from src.core import holder
 
 
 class ImageExporter:
@@ -20,28 +21,30 @@ class ImageExporter:
         with open(config_file_path, "r", encoding="utf-8") as file:
             config = json.load(file)
 
-        self.imageSaveLocationBase = config["DataSaveLocation"]
+        self.image_save_location = config["DataSaveLocation"]
 
-    #saves an image to folder given an imageholder. Saves to a location dependent on imageholder type. Returns if saved
-    def saveImage(self, imageHolder):
+    def save_image(self, image_holder: holder.ImageHolder):
+        """saves an image to folder given an imageholder. 
+        Saves to a location dependent on imageholder type. Returns True if saved"""
 
-        imgInfo = imageHolder.returnImageInfo()
-        img = imageHolder.returnImage()
+        img_info = image_holder.returnImageInfo()
+        img = image_holder.returnImage()
 
-        imageType = str(imgInfo["ImageType"])
-        name = str(imgInfo["Name"])
+        image_type = str(img_info["ImageType"])
+        name = str(img_info["Name"])
 
-        saveDir = self.imageSaveLocationBase+str(imageType)+"Image/"#+name+".tiff"
-        self.makeDir(saveDir)
-        saveLocation = saveDir+name+".tiff"
-        return cv2.imwrite(saveLocation,img)
+        #generate names
+        save_dir = self.image_save_location+str(image_type)+"Image/"
+        save_location = save_dir + name + ".tiff"
 
-    #Checks to see if a directory exists. If not, make a directory here. Returns true if exists
-    def makeDir(self,directoryLocation):
-        dirExist = os.path.exists(directoryLocation)
+        self.make_dir(save_dir)
+        return cv2.imwrite(save_location,img)
 
-        if dirExist:
-            return True
-        else:
-            os.makedirs(directoryLocation)
-            return False
+    def make_dir(self, directory_location: str):
+        """Checks to see if a directory exists. If not, make a directory here. """
+
+        dir_exists = os.path.exists(directory_location)
+
+        if not dir_exists:
+            os.makedirs(directory_location)
+        
