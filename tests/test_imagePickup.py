@@ -1,7 +1,10 @@
-import sys
-#sys.path.insert(0, '../src')
-from src.core import ImageHolder, ImageImporter, ImageExporter, ImageSegmentor, ImageCollection
+"""
+Operations for testing module image operations
+"""
+
+from src.core import holder, ImageImporter, ImageExporter, ImageSegmentor
 import unittest
+
 
 class TestImageModule(unittest.TestCase):
     #Checks to see if image is read.
@@ -49,22 +52,21 @@ class TestImageModule(unittest.TestCase):
     #checks if the image segmentor initializes
     def test_imageSegmentorInit(self):
         testlocation = "./tests/TestData/testImage.jpg"
-        imageReader = ImageHolder.ImageHolder()
-        imageGrabber1 = ImageImporter.ImageImporter()
+        image_reader = ImageHolder.ImageHolder()
+        image_importer = ImageImporter.ImageImporter()
         imageSaver = ImageExporter.ImageExporter(config_file_path="./config/testingconfig.json")
 
-        imageGrabber1.readLocation(testlocation)
-        imageReader.storeImage(imageGrabber1.returnImage(),{"ImageType":"Raw","Name":"TestImage"})
-        imageSaver.saveImage(imageReader)
+        image_importer.readLocation(testlocation)
+        image_reader.storeImage(image_importer.returnImage(),{"ImageType":"Raw","Name":"TestImage"})
+        imageSaver.saveImage(image_reader)
 
         ImageSegmentor1 = ImageSegmentor.imageSegment()
 
-        ImageSegmentor1.applySegmentation(imageReader)
-        
-        imageSaver.saveImage(imageReader)
-        
-        assert imageSaver.saveImage(imageReader)
+        ImageSegmentor1.applySegmentation(image_reader)
 
+        imageSaver.saveImage(image_reader)
+
+        assert imageSaver.saveImage(image_reader)
 
 
 if __name__ == "__main__":

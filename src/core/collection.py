@@ -1,26 +1,26 @@
 import glob
-from src.core import ImageHolder, ImageSegmentor, ImageExporter, ImageImporter
+from src.core import holder, segmentor, exporter, importer
 import os
 import json
-#Class that holds images and applies operations to whole collection.
-#   Will be more specialized later (time data vs zstack)
-#class duties:
-#   Must have images as ImageHolders
-#   Must be able to import images given a location folder of images.
-#   Can be given ImageHolders, will be added to list.
-#   Imageholders are stored with relevant metadata data, sorted based on it. (Z position 
-#       for z stack, time for time series, number for unassociated data)
-#       need sorting operation
-#   Can save the imageholders given a folder location.
-#
-#things to consider for later:
-#   if a large amount of images, operations may need to be buffered, all images can't be stored at once. Can store via pickle
-#       Will be a function of how many images and size of images. Basically, will group images in groups of X. Operations will
-#       done sequentially on each set of objects, then stored, next set open.
 
 class ImageCollection():
+    """Class that holds images and applies operations to whole collection.
+    #   Will be more specialized later (time data vs zstack)
+    #class duties:
+    #   Must have images as ImageHolders
+    #   Must be able to import images given a location folder of images.
+    #   Can be given ImageHolders, will be added to list.
+    #   Imageholders are stored with relevant metadata data, sorted based on it. (Z position 
+    #       for z stack, time for time series, number for unassociated data)
+    #       need sorting operation
+    #   Can save the imageholders given a folder location.
+    #
+    #things to consider for later:
+    #   if a large amount of images, operations may need to be buffered, all images can't be stored at once. Can store via pickle
+    #       Will be a function of how many images and size of images. Basically, will group images in groups of X. Operations will
+    #       done sequentially on each set of objects, then stored, next set open."""
 
-    def __init__(self, imageLocation = "", saveLocation = "",listOfImageLocations=[],config_file_path = "./config/defaultconfig.json"):
+    def __init__(self, image_location: str  = "", save_location: str = "", list_image_locations: list = [], config_file_path: str = "./config/defaultconfig.json"):
         
         config_file_path = os.path.abspath(config_file_path)
 
@@ -33,20 +33,20 @@ class ImageCollection():
 
         #basic parameters, unpopulated or to be read in.
         if saveLocation == "":
-            self.saveLocation = config["DataSaveLocation"]
+            self.save_location = config["DataSaveLocation"]
         else:
-            self.saveLocation = saveLocation
+            self.save_location = save_location
 
         if imageLocation== "":
-            self.imageLocation = config["DataReadLocation"] 
+            self.image_location = config["DataReadLocation"] 
         else:
-            self.imageLocation = imageLocation
+            self.image_location = image_location
        
-        self.listOfImageLocations = listOfImageLocations
+        self.list_of_image_locations = list_image_locations
 
         #holds the image holders
         #  relevant parameter : imageHolder Object
-        self.imageStorage = {}
+        self.image_storage = {}
 
         #
 
@@ -55,18 +55,18 @@ class ImageCollection():
 
     #loads images. Will load from folder, unless a list of specific images are given.
     def loadImages(self):
-        if not self.listOfImageLocations:
+        if not self.list_of_image_locations:
             self.findFiles()
         
-        for image in self.listOfImageLocations:
+        for image in self.list_of_image_locations:
             self.insertImageIntoCollection(image)
 
     #applies a segmentation operation to all images in stack. Can give a custom config 
     def applySegmentation(self, config_file_path="./config/segementingConfig.json"):
-        ImageSegmentor1 = ImageSegmentor.imageSegment(config_file_path=config_file_path)
+        image_segmentor = segmentor.ImageSegment(config_file_path=config_file_path)
 
         for image in self.imageStorage:
-            ImageSegmentor1.applySegmentation(self.imageStorage[image])
+            image_segmentor.applySegmentation(self.imageStorage[image])
         return True
 
 

@@ -2,14 +2,19 @@ import cv2
 import json
 import os
 import numpy as np
-from src.core import ImageHolder
+from src.core import holder
 
-#this will be a class that is init once and will take in files indivitually to do edits.
-#It interfaces with the image holder app by taking it in, applying relevant segmenting information,
-#then overwriting with segmented image.
 
-#segmentation instruction passed via config file. Should have option to call segmentation without config?
-class imageSegment():
+class ImageSegment():
+
+    """
+    #this will be a class that is init once and will take in files indivitually to do edits.
+    #It interfaces with the image holder app by taking it in, applying relevant segmenting information,
+    #then overwriting with segmented image.
+
+    #segmentation instruction passed via config file. Should have option to call segmentation without config?
+    """
+
     def __init__(self,config_file_path = "./config/segementingConfig.json"):
         
         #load in configuration files. 
@@ -43,7 +48,7 @@ class imageSegment():
 
     #applies all the segmenting tasks needed to an image holder.
     #Takes in an imageholder
-    def applySegmentation(self, imageHolder = ImageHolder.ImageHolder()):
+    def applySegmentation(self, imageHolder = holder.ImageHolder()):
 
         self.img = imageHolder.returnImage()
         imgInfo = imageHolder.returnImageInfo()
