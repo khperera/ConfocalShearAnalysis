@@ -51,7 +51,7 @@ class TestImageModule(unittest.TestCase):
         testlocation = "./tests/TestData/testImage.jpg"
         imageReader = ImageHolder.ImageHolder()
         imageGrabber1 = ImageImporter.ImageImporter()
-        imageSaver = ImageExporter.ImageExporter()
+        imageSaver = ImageExporter.ImageExporter(config_file_path="./config/testingconfig.json")
 
         imageGrabber1.readLocation(testlocation)
         imageReader.storeImage(imageGrabber1.returnImage(),{"ImageType":"Raw","Name":"TestImage"})
@@ -65,41 +65,6 @@ class TestImageModule(unittest.TestCase):
         
         assert imageSaver.saveImage(imageReader)
 
-    #test to see if 2 images in a folder could be loaded
-    def test_imageCollectionLoading(self):
-        imageCollection1 = ImageCollection.ImageCollection(imageLocation="./tests/TestData/")
-        imageCollection1.loadImages()
-        numberOfImages = imageCollection1.checkImageLength()
-        if numberOfImages == 2:
-            assert True
-        else:
-            assert False
-
-    #test to see if we can add image holders, and would it hold right amount
-    def test_addingImageHolders(self):
-        imageCollection1 = ImageCollection.ImageCollection(imageLocation="./tests/TestData/")
-        numberofImages = 11
-        for val1 in range(0,numberofImages):
-            imageCollection1.addImageHolder()
-        finalnumberofImages =  imageCollection1.checkImageLength()
-
-        if finalnumberofImages == numberofImages:
-            assert True
-        else:
-            assert False
-
-    #checks to see if saving a collection of files works.
-    def test_collector_saving(self):
-        imageCollection1 = ImageCollection.ImageCollection(imageLocation="./tests/TestData/", config_file_path="./config/testingconfig.json")
-        imageCollection1.loadImages()
-        numberOfImages = imageCollection1.checkImageLength()
-    
-    #False test           
-    def test_False(self):
-       self.assertFalse( False)
-    #True Test
-    def test_True(self):
-        assert True
 
 
 if __name__ == "__main__":

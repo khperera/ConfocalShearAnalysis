@@ -14,8 +14,7 @@ class ImageExporter:
         with open(config_file_path, "r") as file:
             config = json.load(file)
 
-        self.imageSaveLocationBase = config["ImageSaver"]["DataStorageLocation"]
-
+        self.imageSaveLocationBase = config["DataSaveLocation"]
 
     #saves an image to folder given an imageholder. Saves to a location dependent on imageholder type. Returns if saved
     def saveImage(self, imageHolder):

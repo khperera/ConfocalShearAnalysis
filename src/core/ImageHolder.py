@@ -5,7 +5,7 @@ import numpy as np
 #a class that holds an image and information about an image.
 class ImageHolder:
 
-    def __init__(self, img = np.zeros((1), dtype=np.uint8), imgData = {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,}):
+    def __init__(self, img = np.zeros((1), dtype=np.uint8), imgData = {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,"Position Data":{}}):
         self.img = img
         self.imgInfo = imgData
 
@@ -15,12 +15,12 @@ class ImageHolder:
         del self.imgInfo
 
     #takes in a numpy array that represents an image
-    def storeImage(self, img, imgInfo =  {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,}):
+    def storeImage(self, img, imgInfo =  {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,"Position Data": {}}):
         self.img = img
         self.imgInfo = imgInfo
 
     #stores the image info
-    def storeImageInfo(self,imgInfo =  {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,}):
+    def storeImageInfo(self,imgInfo =  {"ImageType" : "Default", "Name" : "Default", "ZPos": -1, "Time": -1,"Position Data":{}}):
         self.imgInfo = imgInfo
 
     #returns the image

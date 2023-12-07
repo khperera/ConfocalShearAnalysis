@@ -30,14 +30,18 @@ class ImageCollection():
         with open(config_file_path, "r") as file:
             config = json.load(file)
 
-        self.imageSaveLocationBase = config["ImageSaver"]["DataStorageLocation"]
 
+        #basic parameters, unpopulated or to be read in.
+        if saveLocation == "":
+            self.saveLocation = config["DataSaveLocation"]
+        else:
+            self.saveLocation = saveLocation
 
-
-
-        #basic parameters, unpopulated
-        self.imageLocation = imageLocation
-        self.saveLocation = saveLocation
+        if imageLocation== "":
+            self.imageLocation = config["DataReadLocation"] 
+        else:
+            self.imageLocation = imageLocation
+       
         self.listOfImageLocations = listOfImageLocations
 
         #holds the image holders
@@ -57,6 +61,15 @@ class ImageCollection():
         for image in self.listOfImageLocations:
             self.insertImageIntoCollection(image)
 
+    #applies a segmentation operation to all images in stack. Can give a custom config 
+    def applySegmentation(self, config_file_path="./config/segementingConfig.json"):
+        ImageSegmentor1 = ImageSegmentor.imageSegment(config_file_path=config_file_path)
+
+        for image in self.imageStorage:
+            ImageSegmentor1.applySegmentation(self.imageStorage[image])
+        return True
+
+
     #adds an external image holder. Should take in relevant metadata in inhertied class 
     #   and add to dictionary with that
     def addImageHolder(self,imageHolder = ImageHolder.ImageHolder()):
@@ -75,9 +88,8 @@ class ImageCollection():
         for image in self.imageStorage:
             truthStatement = truthStatement and imageSaver.saveImage(self.imageStorage[image])
         return truthStatement
-    #checks to see how many images are in the list.
-    def checkImageLength(self):
-        return len(self.imageStorage)
+    
+
 
 ############################################################
 #Class utilies/helper functions
@@ -92,10 +104,15 @@ class ImageCollection():
         imageImporter = ImageImporter.ImageImporter(imageLocation=location)
         
         if not self.imageStorage:
-            metaData = {"ImageType" : "Raw", "0" : "Default", "ZPos": -1, "Time": -1,}
+            metaData = {"ImageType" : "Raw", "Name" : "0", "ZPos": -1, "Time": -1,}
             self.imageStorage[0] = ImageHolder.ImageHolder(imageImporter.returnImage(),metaData)
         else:
             num1 = max(self.imageStorage)+1
-            metaData = {"ImageType" : "Raw", "num1" : "Default", "ZPos": -1, "Time": -1,}
+            metaData = {"ImageType" : "Raw", "Name" : str(num1), "ZPos": -1, "Time": -1,}
             self.imageStorage[num1] = ImageHolder.ImageHolder(imageImporter.returnImage(),metaData)
-        
+    
+    #checks to see how many images are in the list.
+    def checkImageLength(self):
+        return len(self.imageStorage)
+    
+    

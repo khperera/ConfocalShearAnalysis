@@ -1,5 +1,4 @@
 #import modules
-from src.core import ImageGrabber, ImageHolder,ImageSaver,ImageSegmentor
+from src.core import ImageGrabber, ImageHolder,ImageSaver,ImageSegmentor, ImageCollection
 def main():
-    #some functions
-    pass
+    imageCollection1 = ImageCollection.ImageCollection()

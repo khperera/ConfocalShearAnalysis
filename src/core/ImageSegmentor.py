@@ -21,7 +21,7 @@ class imageSegment():
         with open(config_file_path, "r") as file:
             config = json.load(file)
 
-        self.imageSaveLocationBase = config["DataStorageLocation"]
+        #self.imageSaveLocationBase = config["DataStorageLocation"]
 
 
         #self.smoothingParameters = {d}
@@ -46,6 +46,8 @@ class imageSegment():
     def applySegmentation(self, imageHolder = ImageHolder.ImageHolder()):
 
         self.img = imageHolder.returnImage()
+        imgInfo = imageHolder.returnImageInfo()
+        imgInfo["ImageType"] = "Segment"
         self.convertToSingleChannel(channel = 0)
         
         if self.bilateralFilterMarker:
@@ -54,7 +56,7 @@ class imageSegment():
             self.adaptiveThreshold()
         
 
-        imageHolder.storeImage(self.img,{"ImageType" : "Segment", "Name" : "Default", "ZPos": -1, "Time": -1,})
+        imageHolder.storeImage(self.img,imgInfo)
 
 ####################################################################################################
 #filters
