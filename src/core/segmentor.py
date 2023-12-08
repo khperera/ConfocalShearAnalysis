@@ -1,6 +1,10 @@
-import cv2
-import json
+"""
+Class that is used to segment images.
+"""
+
 import os
+import json
+import cv2
 import numpy as np
 from src.core import holder
 
@@ -87,7 +91,7 @@ class ImageSegment():
         
 
 # adaptive threshold wrapper
-    def adaptiveThreshold(self,params = {"maxValue":255,"blockSize":401,"C":10}):
+    def adaptiveThreshold1(self,params = {"maxValue":255,"blockSize":401,"C":10}):
 
         maxValue = params["maxValue"]
         blockSize = params["blockSize"]

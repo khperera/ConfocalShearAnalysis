@@ -1,25 +1,26 @@
+"""
+Imports images 
+"""
+import os
 import cv2
 import numpy as np
-import os
-
-#given a location, loads an image. 
+import numpy.typing as npt
 
 class ImageImporter:
-    def __init__(self, imageLocation = ""):
-        self.imageLocation = imageLocation
+    """Class that imports images"""
+    def __init__(self, image_location: str = "") -> None:
+        self.image_location = image_location
 
+    def read_location(self, location)-> None:
+        """user command to give a location, then give an image bac"""
+        self.image_location = location
 
-    #user command to give a location, then give an image back
-    def readLocation(self, location):
-        self.imageLocation = location
-        return 
 
 
     #the image reading function
-    def returnImage(self):
-
-        
-        if not os.path.isfile(self.imageLocation):
+    def return_image(self) -> npt.ArrayLike:
+        """command to read file, if no file found, returns an empty image"""
+        if not os.path.isfile(self.image_location):
             return np.zeros((1,1,3), dtype=np.uint8)
         else:
-            return cv2.imread(self.imageLocation,1)
+            return cv2.imread(self.image_location,1)
