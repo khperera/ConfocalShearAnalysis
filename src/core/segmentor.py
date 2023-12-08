@@ -24,8 +24,8 @@ class ImageSegment():
         config = tools.load_config(config_file_path=config_file_path)
         self.bilateral_filter_marker = config["segment_config"]["bilateral_filter_marker"]
         self.adaptive_filter_marker = config["segment_config"]["adaptive_filter_marker"]
-
-
+        self.bilateral_filter_parameters = config["segment_config"]["bilateral_filter_parameters"]
+        self.adaptive_filter_parameters = config["segment_config"]["adaptive_filter_parameters"]
 
         #create default image.
         self.img = np.zeros((1,1,3), dtype=np.uint8)
@@ -43,10 +43,9 @@ class ImageSegment():
         img_info["ImageType"] = "Segment"
         self.convert_to_single_channel(channel = 0)
         if self.bilateral_filter_marker:
-            self.bilateral_filter()
+            self.bilateral_filter(**self.bilateral_filter_parameters)
         if self.adaptive_filter_marker:
-            self.adaptive_threshold()
-
+            self.adaptive_threshold(**self.adaptive_filter_parameters)
         image_holder.store_image(self.img,img_info)
 
 ####################################################################################################
@@ -75,7 +74,7 @@ class ImageSegment():
 #utils
 
 
-    def convert_to_single_channel(self, channel = 0):
+    def convert_to_single_channel(self, channel = 1):
         """
         #checks to see if an image is of the type uint8. Chooses the correct channel as well
         #channel 0,1,2 is b,g,r

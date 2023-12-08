@@ -31,6 +31,7 @@ class ImageCollection():
 
         config = tools.load_config(config_file_path=config_file_path)
         #basic parameters, unpopulated or to be read in.
+        self.config_file_path = config_file_path
         if save_location == "":
             self.save_location = config["DataSaveLocation"]
         else:
@@ -49,6 +50,7 @@ class ImageCollection():
         #holds the image holders
         #  relevant parameter : imageHolder Object
         self.image_storage = {}
+        #self.total_files = 0
 
 ##########################################################
 #Callable functions
@@ -62,9 +64,11 @@ class ImageCollection():
             self.insert_image_to_collection(image)
 
 
-    def apply_segmentation(self, config_file_path="./config/testingconfig.json"):
+    def apply_segmentation(self, segment_config_file_path = None):
         """applies a segmentation operation to all images in stack. Can give a custom config"""
-        image_segmentor = segmentor.ImageSegment(config_file_path=config_file_path)
+        if segment_config_file_path is None:
+            config_file_path_segment = self.config_file_path
+        image_segmentor = segmentor.ImageSegment(config_file_path=config_file_path_segment)
 
         for image in self.image_storage.values():
             image_segmentor.apply_segmentation(image)
@@ -82,8 +86,8 @@ class ImageCollection():
         """saves images to specified folder. Returns true if all files saved"""
         if save_location != "":
             self.save_location = save_location
-
-        image_saver = exporter.ImageExporter(config_file_path="./config/testingconfig.json")
+        config_file_path_save = self.config_file_path
+        image_saver = exporter.ImageExporter(config_file_path=config_file_path_save)
         truth_statement = True
 
         for image in self.image_storage.values():

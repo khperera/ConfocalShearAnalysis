@@ -3,10 +3,22 @@
     "DataReadLocation": "./tests/testImage/",
     "DataSaveLocation" : "./data/TestData/",
     "segment_config":
+    {
+      "bilateral_filter_marker": true,
+      "bilateral_filter_parameters": 
       {
-        "bilateral_filter_marker": true,
-        "adaptive_filter_marker": true
+          "d": 10,
+          "sigma_color": 75,
+          "sigma_space": 75
+      },
+      "adaptive_filter_marker": true,
+      "adaptive_filter_parameters":
+      {
+          "max_value": 255,
+          "block_size": 401,
+          "c": 10
       }
+    }
     
   }
   

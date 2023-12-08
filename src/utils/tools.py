@@ -10,8 +10,9 @@ import shutil
 def clean_data_directory():
     """Deletes files and directories in the data folder"""
     files_to_delete = os.listdir("./data/")
+    print(files_to_delete)
     for location in files_to_delete:
-        shutil.rmtree(location)
+        shutil.rmtree("./data/"+location)
 
 
 def load_config(config_file_path: str = "./config/defaultconfig.json") -> json:
