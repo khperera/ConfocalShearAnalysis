@@ -7,15 +7,15 @@
         "bilateral_filter_marker": true,
         "bilateral_filter_parameters": 
         {
-            "d":10,
+            "d":5,
             "sigma_color":75,
             "sigma_space":75
         },
-        "adaptive_filter_marker": false,
+        "adaptive_filter_marker": true,
         "adaptive_filter_parameters":
         {
             "max_value": 255,
-            "block_size": 401,
+            "block_size": 201,
             "c": 10
         }
       }

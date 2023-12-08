@@ -41,7 +41,7 @@ class ImageSegment():
         self.img = image_holder.return_image()
         img_info = image_holder.return_image_info()
         img_info["ImageType"] = "Segment"
-        self.convert_to_single_channel(channel = 0)
+        self.convert_to_single_channel(channel = 2)
         if self.bilateral_filter_marker:
             self.bilateral_filter(**self.bilateral_filter_parameters)
         if self.adaptive_filter_marker:
