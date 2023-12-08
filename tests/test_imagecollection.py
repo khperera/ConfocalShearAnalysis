@@ -2,7 +2,7 @@
 Unit tests for testing image collection methods/ operations.
 """
 import unittest
-from src.core import holder, importer, exporter, segmentor, collection
+from src.core import collection
 
 
 class TestImageCollectionModule(unittest.TestCase):
@@ -10,54 +10,48 @@ class TestImageCollectionModule(unittest.TestCase):
     test to see if 2 images in a folder could be loaded"""
     def test_imagecollection_loading(self):
         """
+        Sees if an image collection can load set images in directory.
         """
-        imageCollection1 = ImageCollection.ImageCollection(imageLocation="./tests/TestData/", config_file_path="./config/testingconfig.json")
-        imageCollection1.loadImages()
-        numberOfImages = imageCollection1.checkImageLength()
-        if numberOfImages == 5:
+        image_collection = collection.ImageCollection(image_location="./tests/TestData/",
+                                                    config_file_path="./config/testingconfig.json")
+        image_collection.load_images()
+        num_images = image_collection.check_image_length()
+        if num_images == 5:
             assert True
         else:
             assert False
 
-    #test to see if we can add image holders, and would it hold right amount
-    def test_addingImageHolders(self):
-        imageCollection1 = ImageCollection.ImageCollection(imageLocation="./tests/TestData/", config_file_path="./config/testingconfig.json")
-        numberofImages = 11
-        for val1 in range(0,numberofImages):
-            imageCollection1.addImageHolder()
-        finalnumberofImages =  imageCollection1.checkImageLength()
 
-        if finalnumberofImages == numberofImages:
+    def test_adding_emptyholders(self):
+        """test to see if we can add image holders, and would it hold right amount"""
+        image_collection = collection.ImageCollection(image_location="./tests/TestData/",
+                                config_file_path="./config/testingconfig.json")
+        finnum_images = 11
+        for _ in range(0,finnum_images):
+            image_collection.add_image_holder()
+        num_images =  image_collection.check_image_length()
+
+        if finnum_images == num_images:
             assert True
         else:
             assert False
 
-    #checks to see if saving a collection of files works.
     def test_collector_saving(self):
-        imageCollection1 = ImageCollection.ImageCollection(imageLocation="./tests/TestData/", config_file_path="./config/testingconfig.json")
-        imageCollection1.loadImages()
-        numberOfImages = imageCollection1.checkImageLength()
-        imageCollection1.saveFiles()
+        """checks to see if saving a collection of files works."""
+        image_collection = collection.ImageCollection(image_location="./tests/TestData/",
+                                                    config_file_path="./config/testingconfig.json")
+        image_collection.load_images()
+        assert image_collection.save_files()
 
 
-    #checks to see if segmenting a collection of files works.
+
     def test_collector_segmentandsave(self):
-        pass
-        imageCollection1 = ImageCollection.ImageCollection(imageLocation="./tests/TestData/", config_file_path="./config/testingconfig.json")
-        imageCollection1.loadImages()
-        numberOfImages = imageCollection1.checkImageLength()
-        imageCollection1.applySegmentation()
-        imageCollection1.saveFiles()
-    
-    
-    
-    #False test           
-    def test_False(self):
-       self.assertFalse( False)
-    #True Test
-    def test_True(self):
-        assert True
-
+        """#checks to see if segmenting a collection of files works."""
+        image_collection = collection.ImageCollection(image_location="./tests/TestData/",
+                                                    config_file_path="./config/testingconfig.json")
+        image_collection.load_images()
+        image_collection.apply_segmentation()
+        image_collection.save_files()
 
 if __name__ == "__main__":
     unittest.main()

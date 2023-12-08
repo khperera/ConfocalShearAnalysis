@@ -66,7 +66,7 @@ class ImageCollection():
         """applies a segmentation operation to all images in stack. Can give a custom config"""
         image_segmentor = segmentor.ImageSegment(config_file_path=config_file_path)
 
-        for image in self.image_storage.items():
+        for image in self.image_storage.values():
             image_segmentor.apply_segmentation(image)
         return True
 
@@ -86,7 +86,7 @@ class ImageCollection():
         image_saver = exporter.ImageExporter(config_file_path="./config/testingconfig.json")
         truth_statement = True
 
-        for image in self.image_storage.items():
+        for image in self.image_storage.values():
             truth_statement = truth_statement and image_saver.save_image(image)
         return truth_statement
 
