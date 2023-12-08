@@ -1,7 +1,16 @@
+"""
+Class that oversees image operations
+#things to consider for later:
+if a large amount of images, operations may need to be buffered, 
+all images can't be stored at once. Can store via pickle
+Will be a function of how many images and size of images. 
+Basically, will group images in groups of X. Operations will
+done sequentially on each set of objects, then stored, next set open.
+"""
+
 import glob
 from src.core import holder, segmentor, exporter, importer
-import os
-import json
+from src.utils import tools
 
 class ImageCollection():
     """Class that holds images and applies operations to whole collection.
@@ -14,105 +23,97 @@ class ImageCollection():
     #       for z stack, time for time series, number for unassociated data)
     #       need sorting operation
     #   Can save the imageholders given a folder location.
-    #
-    #things to consider for later:
-    #   if a large amount of images, operations may need to be buffered, all images can't be stored at once. Can store via pickle
-    #       Will be a function of how many images and size of images. Basically, will group images in groups of X. Operations will
-    #       done sequentially on each set of objects, then stored, next set open."""
+    """
 
-    def __init__(self, image_location: str  = "", save_location: str = "", list_image_locations: list = [], config_file_path: str = "./config/defaultconfig.json"):
-        
-        config_file_path = os.path.abspath(config_file_path)
+    def __init__(self, image_location: str  = "", save_location: str = "",
+                list_image_locations: list = None,
+                config_file_path: str = "./config/defaultconfig.json"):
 
-        if not os.path.exists(config_file_path):
-            raise FileNotFoundError(f"Config file not found: {config_file_path}")
-
-        with open(config_file_path, "r") as file:
-            config = json.load(file)
-
-
+        config = tools.load_config(config_file_path=config_file_path)
         #basic parameters, unpopulated or to be read in.
-        if saveLocation == "":
+        if save_location == "":
             self.save_location = config["DataSaveLocation"]
         else:
             self.save_location = save_location
 
-        if imageLocation== "":
-            self.image_location = config["DataReadLocation"] 
+        if image_location== "":
+            self.image_location = config["DataReadLocation"]
         else:
             self.image_location = image_location
-       
-        self.list_of_image_locations = list_image_locations
+
+        if list_image_locations is None:
+            self.list_of_image_locations = []
+        else:
+            self.list_of_image_locations = list_image_locations
 
         #holds the image holders
         #  relevant parameter : imageHolder Object
         self.image_storage = {}
 
-        #
-
 ##########################################################
 #Callable functions
 
-    #loads images. Will load from folder, unless a list of specific images are given.
-    def loadImages(self):
+    def load_images(self) -> None:
+        """loads images. Will load from folder, unless a list of specific images are given."""
         if not self.list_of_image_locations:
-            self.findFiles()
-        
-        for image in self.list_of_image_locations:
-            self.insertImageIntoCollection(image)
+            self.find_files()
 
-    #applies a segmentation operation to all images in stack. Can give a custom config 
-    def applySegmentation(self, config_file_path="./config/segementingConfig.json"):
+        for image in self.list_of_image_locations:
+            self.insert_image_to_collection(image)
+
+
+    def apply_segmentation(self, config_file_path="./config/testingconfig.json"):
+        """applies a segmentation operation to all images in stack. Can give a custom config"""
         image_segmentor = segmentor.ImageSegment(config_file_path=config_file_path)
 
-        for image in self.imageStorage:
-            image_segmentor.applySegmentation(self.imageStorage[image])
+        for image in self.image_storage.items():
+            image_segmentor.apply_segmentation(image)
         return True
 
 
-    #adds an external image holder. Should take in relevant metadata in inhertied class 
-    #   and add to dictionary with that
-    def addImageHolder(self,imageHolder = ImageHolder.ImageHolder()):
-        if not self.imageStorage:
-            self.imageStorage[0]= imageHolder
+    def add_image_holder(self, image_holder: holder.ImageHolder = holder.ImageHolder()):
+        """adds an external image holder. Should take in relevant metadata in inhertied class """
+        if not self.image_storage:
+            self.image_storage[0]= image_holder
         else:
-            self.imageStorage[max(self.imageStorage)+1] = imageHolder
+            self.image_storage[max(self.image_storage)+1] = image_holder
 
-    #saves images to specified folder. Returns true if all files saved
-    def saveFiles(self, savelocation = ""):
-        if not savelocation == "":
-            self.saveLocation = savelocation
-        
-        imageSaver = ImageExporter.ImageExporter(config_file_path="./config/testingconfig.json")
-        truthStatement = True
-        for image in self.imageStorage:
-            truthStatement = truthStatement and imageSaver.saveImage(self.imageStorage[image])
-        return truthStatement
-    
+    def save_files(self, save_location = ""):
+        """saves images to specified folder. Returns true if all files saved"""
+        if save_location != "":
+            self.save_location = save_location
+
+        image_saver = exporter.ImageExporter(config_file_path="./config/testingconfig.json")
+        truth_statement = True
+
+        for image in self.image_storage.items():
+            truth_statement = truth_statement and image_saver.save_image(image)
+        return truth_statement
 
 
 ############################################################
 #Class utilies/helper functions
 
     #find files.
-    def findFiles(self):
-        self.listOfImageLocations = glob.glob(self.imageLocation+"*")
+    def find_files(self):
+        """Finds files in defined folder location from config file"""
+        self.list_of_image_locations = glob.glob(self.image_location+"*")
 
-    #inserts image into the collection given a location. Puts relevant metadata in dictionary
-    #   need to make a metadata generator.
-    def insertImageIntoCollection(self,location):
-        imageImporter = ImageImporter.ImageImporter(imageLocation=location)
-        
-        if not self.imageStorage:
-            metaData = {"ImageType" : "Raw", "Name" : "0", "ZPos": -1, "Time": -1,}
-            self.imageStorage[0] = ImageHolder.ImageHolder(imageImporter.returnImage(),metaData)
+    def insert_image_to_collection(self,location):
+        """inserts image into the collection given a location. 
+            Puts relevant metadata in dictionary"""
+        image_importer = importer.ImageImporter(image_location=location)
+
+        #adds images to collection based on order added.
+        #Later, will be based on some parameter, like Zpos
+        if not self.image_storage:
+            metadata = {"ImageType" : "Raw", "Name" : "0", "ZPos": -1, "Time": -1,}
+            self.image_storage[0] = holder.ImageHolder(image_importer.return_image(),metadata)
         else:
-            num1 = max(self.imageStorage)+1
-            metaData = {"ImageType" : "Raw", "Name" : str(num1), "ZPos": -1, "Time": -1,}
-            self.imageStorage[num1] = ImageHolder.ImageHolder(imageImporter.returnImage(),metaData)
-    
-    #checks to see how many images are in the list.
-    def checkImageLength(self):
-        return len(self.imageStorage)
-    
-    
+            num1 = max(self.image_storage)+1
+            metadata = {"ImageType" : "Raw", "Name" : str(num1), "ZPos": -1, "Time": -1,}
+            self.image_storage[num1] = holder.ImageHolder(image_importer.return_image(),metadata)
+
+    def check_image_length(self):
+        """ #checks to see how many images are in the list."""
+        return len(self.image_storage)

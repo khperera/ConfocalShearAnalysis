@@ -1,7 +1,12 @@
 {
     
     "DataReadLocation": "./tests/testImage/",
-    "DataSaveLocation" : "./data/TestData/"
+    "DataSaveLocation" : "./data/TestData/",
+    "segment_config":
+      {
+        "bilateral_filter_marker": true,
+        "adaptive_filter_marker": true
+      }
     
   }
   

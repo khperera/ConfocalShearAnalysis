@@ -1,72 +1,74 @@
 """
 Operations for testing module image operations
 """
-
-from src.core import holder, ImageImporter, ImageExporter, ImageSegmentor
 import unittest
-
+from src.core import holder, importer, exporter, segmentor
 
 class TestImageModule(unittest.TestCase):
-    #Checks to see if image is read.
-    def test_imageRead(self):
+    """Test image classification module"""
+    def test_imageread(self):
+        """Test to see if an image can be read."""
         testlocation = "./tests/TestData/testImage.jpg"
-        imageReader = ImageHolder.ImageHolder()
-        imageGrabber1 = ImageImporter.ImageImporter()
+        image_storage = holder.ImageHolder()
+        image_import = importer.ImageImporter()
+        image_import.read_location(testlocation)
+        image_storage.store_image(image_import.return_image())
+        size = image_storage.return_image_size()
 
-
-        imageGrabber1.readLocation(testlocation)
-        imageReader.storeImage(imageGrabber1.returnImage())
-        size = imageReader.returnImageSize()
-        #print(size)
         if size[0] > 1:
             assert True
         else:
             assert False
 
-    #Test for invalid image location. If finds a bad image, returns true. Checks x dimension of image
-    def test_imageRead_badLocation(self):
+    def test_imageread_badlocation(self):
+        """Test for invalid image location. 
+            If finds a bad image, returns true. Checks x dimension of image"""
         testlocation = "./tests/TestData/NOTREALLOCATION.jpg"
-        imageReader = ImageHolder.ImageHolder()
-        imageGrabber1 = ImageImporter.ImageImporter()
+        image_storage = holder.ImageHolder()
+        image_import = importer.ImageImporter()
 
 
-        imageGrabber1.readLocation(testlocation)
-        imageReader.storeImage(imageGrabber1.returnImage())
-        size = imageReader.returnImageSize()
+        image_import.read_location(testlocation)
+        image_storage.store_image(image_import.return_image())
+        size = image_storage.return_image_size()
         #print(size)
         if size[0] > 1:
             assert False
         else:
             assert True
 
-    def test_imageSave(self):
+    def test_imagesave(self):
+        """Verification that image can be saved"""
         testlocation = "./tests/TestData/testImage.jpg"
-        imageReader = ImageHolder.ImageHolder()
-        imageGrabber1 = ImageImporter.ImageImporter()
-        imageSaver = ImageExporter.ImageExporter(config_file_path="./config/testingconfig.json")
+        image_storage = holder.ImageHolder()
+        image_import = importer.ImageImporter()
+        image_export = exporter.ImageExporter(config_file_path="./config/testingconfig.json")
 
-        imageGrabber1.readLocation(testlocation)
-        imageReader.storeImage(imageGrabber1.returnImage(),{"ImageType":"Raw","Name":"TestImage"})
-        self.assertTrue(imageSaver.saveImage(imageReader))
+        image_import.read_location(testlocation)
+        image_storage.store_image(image_import.return_image(),
+                                    {"ImageType":"Raw","Name":"TestImage"})
+        self.assertTrue(image_export.save_image(image_storage))
 
-    #checks if the image segmentor initializes
-    def test_imageSegmentorInit(self):
+
+    def test_imagesegmentor(self):
+        """Validation for image segmenting and saving"""
         testlocation = "./tests/TestData/testImage.jpg"
-        image_reader = ImageHolder.ImageHolder()
-        image_importer = ImageImporter.ImageImporter()
-        imageSaver = ImageExporter.ImageExporter(config_file_path="./config/testingconfig.json")
+        image_storage = holder.ImageHolder()
+        image_importer = importer.ImageImporter()
+        image_export = exporter.ImageExporter(config_file_path="./config/testingconfig.json")
 
-        image_importer.readLocation(testlocation)
-        image_reader.storeImage(image_importer.returnImage(),{"ImageType":"Raw","Name":"TestImage"})
-        imageSaver.saveImage(image_reader)
+        image_importer.read_location(testlocation)
+        image_storage.store_image(image_importer.return_image(),
+                                  {"ImageType":"Raw","Name":"TestImage"})
+        image_export.save_image(image_storage)
 
-        ImageSegmentor1 = ImageSegmentor.imageSegment()
+        image_segment= segmentor.ImageSegment()
 
-        ImageSegmentor1.applySegmentation(image_reader)
+        image_segment.apply_segmentation(image_storage)
 
-        imageSaver.saveImage(image_reader)
+        image_export.save_image(image_storage)
 
-        assert imageSaver.saveImage(image_reader)
+        assert image_export.save_image(image_storage)
 
 
 if __name__ == "__main__":

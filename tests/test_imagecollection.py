@@ -1,13 +1,16 @@
-import sys
-#sys.path.insert(0, '../src')
-from src.core import ImageHolder, ImageImporter, ImageExporter, ImageSegmentor, ImageCollection
+"""
+Unit tests for testing image collection methods/ operations.
+"""
 import unittest
+from src.core import holder, importer, exporter, segmentor, collection
+
 
 class TestImageCollectionModule(unittest.TestCase):
-    #Checks to see if collector modifications are read.
-    
-    #test to see if 2 images in a folder could be loaded
-    def test_imageCollectionLoading(self):
+    """Checks to see if collector modifications are read.
+    test to see if 2 images in a folder could be loaded"""
+    def test_imagecollection_loading(self):
+        """
+        """
         imageCollection1 = ImageCollection.ImageCollection(imageLocation="./tests/TestData/", config_file_path="./config/testingconfig.json")
         imageCollection1.loadImages()
         numberOfImages = imageCollection1.checkImageLength()
