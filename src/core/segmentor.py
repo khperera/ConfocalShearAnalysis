@@ -26,7 +26,8 @@ class ImageSegment():
         self.adaptive_filter_marker = config["segment_config"]["adaptive_filter_marker"]
         self.bilateral_filter_parameters = config["segment_config"]["bilateral_filter_parameters"]
         self.adaptive_filter_parameters = config["segment_config"]["adaptive_filter_parameters"]
-
+        self.canny_filter_marker = config["segment_config"]["canny_filter_marker"]
+        self.canny_filter_parameters = config["segment_config"]["canny_filter_parameters"]
         #create default image.
         self.img = np.zeros((1,1,3), dtype=np.uint8)
 
@@ -44,6 +45,9 @@ class ImageSegment():
         self.convert_to_single_channel(channel = 2)
         if self.bilateral_filter_marker:
             self.bilateral_filter(**self.bilateral_filter_parameters)
+        if self.canny_filter_marker:
+            self.canny_filter(**self.canny_filter_parameters)
+
         if self.adaptive_filter_marker:
             self.adaptive_threshold(**self.adaptive_filter_parameters)
         image_holder.store_image(self.img,img_info)
@@ -54,7 +58,7 @@ class ImageSegment():
 
     #bilateral filter wrapper
     def bilateral_filter(self, d: int = 10, sigma_color: int = 75,
-                         sigma_space: int = 75) -> npt.ArrayLike:
+                         sigma_space: int = 75) -> None:
         """
         Applies the bilateral filter function to an image.
         """
@@ -62,7 +66,7 @@ class ImageSegment():
                                        sigmaSpace=sigma_space)
 
     # adaptive threshold wrapper
-    def adaptive_threshold(self, max_value: int = 255, block_size: int = 401, c: int = 10):
+    def adaptive_threshold(self, max_value: int = 255, block_size: int = 401, c: int = 10) -> None:
         """Applies openCV's adaptive threshold method"""
         self.img = cv2.adaptiveThreshold(self.img,
                                       max_value,
@@ -70,6 +74,9 @@ class ImageSegment():
                                       cv2.THRESH_BINARY,
                                       block_size, c)
 
+    def canny_filter(self, threshold_1: int = 10, threshold_2: int = 10) -> None:
+        """Applies openCV's canny filter method"""
+        self.img = cv2.Canny(self.img,threshold1=threshold_1,threshold2=threshold_2)
 ####################################################################################################
 #utils
 
