@@ -22,11 +22,13 @@ class ImageExporter:
         img_info = image_holder.return_image_info()
         img = image_holder.return_image()
 
-        image_type = str(img_info["ImageType"])
-        name = str(img_info["Name"])
-
+        image_type = str(img_info["image_type"])
+       
+        name = str(img_info["name"])
         #generate names
         save_dir = self.image_save_location+str(image_type)+"Image/"
+
+
         save_location = save_dir + name + ".tiff"
 
         self.make_dir(save_dir)

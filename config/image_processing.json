@@ -23,6 +23,17 @@
         {
           "threshold_1" : 200,
           "threshold_2" : 210
+        },
+        "hough_filter_marker": true,
+        "hough_filter_parameters":
+        {
+          "method" : "HOUGH_GRADIENT",
+          "dp" : 1.5,
+          "min_distance_radio" : 1.5,
+          "param_1" : 200,
+          "param_2" : 0.9,
+          "min_radius_fraction" : 0.01,
+          "max_radius_fraction" : 0.05
         }
       }
     

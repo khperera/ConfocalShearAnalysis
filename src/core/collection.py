@@ -111,12 +111,14 @@ class ImageCollection():
         #adds images to collection based on order added.
         #Later, will be based on some parameter, like Zpos
         if not self.image_storage:
-            metadata = {"ImageType" : "Raw", "Name" : "0", "ZPos": -1, "Time": -1,}
-            self.image_storage[0] = holder.ImageHolder(image_importer.return_image(),metadata)
+            metadata = {"img" : image_importer.return_image(),
+                        "image_type" : "Raw", "name" : "0", "z_position": -1, "time": -1,}
+            self.image_storage[0] = holder.ImageHolder(**metadata)
         else:
             num1 = max(self.image_storage)+1
-            metadata = {"ImageType" : "Raw", "Name" : str(num1), "ZPos": -1, "Time": -1,}
-            self.image_storage[num1] = holder.ImageHolder(image_importer.return_image(),metadata)
+            metadata = {"img": image_importer.return_image(),
+                        "image_type" : "Raw", "name" : str(num1), "z_position": -1, "time": -1,}
+            self.image_storage[num1] = holder.ImageHolder(**metadata)
 
     def check_image_length(self):
         """ #checks to see how many images are in the list."""

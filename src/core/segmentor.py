@@ -28,9 +28,13 @@ class ImageSegment():
         self.adaptive_filter_parameters = config["segment_config"]["adaptive_filter_parameters"]
         self.canny_filter_marker = config["segment_config"]["canny_filter_marker"]
         self.canny_filter_parameters = config["segment_config"]["canny_filter_parameters"]
+        hough_filter_parameters = config["segment_config"]["hough_filter_parameters"]
+        hough_filter_marker = config["segment_config"]["hough_filter_marker"]
+        
         #create default image.
         self.img = np.zeros((1,1,3), dtype=np.uint8)
-
+        self.img_shape = None
+        
 ####################################################################################################
 #main function. callable by other functions, classes
 
@@ -41,7 +45,8 @@ class ImageSegment():
         """Given the config file, applies segmentation across all images in stack"""
         self.img = image_holder.return_image()
         img_info = image_holder.return_image_info()
-        img_info["ImageType"] = "Segment"
+        self.img_shape = image_holder.return_image_size()
+        img_info["image_type"] = "Segment"
         self.convert_to_single_channel(channel = 2)
         if self.bilateral_filter_marker:
             self.bilateral_filter(**self.bilateral_filter_parameters)
@@ -50,8 +55,13 @@ class ImageSegment():
 
         if self.adaptive_filter_marker:
             self.adaptive_threshold(**self.adaptive_filter_parameters)
-        image_holder.store_image(self.img,img_info)
+        image_holder.store_image(self.img,image_type="Segment")
 
+        if self.hough_filter_marker:
+            circle_data = self.apply_hough_circle()
+            dictionary_fit = image_holder.return_fit_dictionary()
+            dictionary_fit["Position"] = circle_data
+            
 ####################################################################################################
 #filters
 
@@ -77,6 +87,22 @@ class ImageSegment():
     def canny_filter(self, threshold_1: int = 10, threshold_2: int = 10) -> None:
         """Applies openCV's canny filter method"""
         self.img = cv2.Canny(self.img,threshold1=threshold_1,threshold2=threshold_2)
+
+    def apply_hough_circle(self, method: str = "HOUGH_GRADIENT", dp: float = 1.5,
+                     min_distance_ratio: int = 0, param_1: int = 200, param_2: int = 0.9,
+                     min_radius_fraction = 0.01, max_radius_fraction: int = 0.05)-> npt.ArrayLike:
+        """Extracts hough circles from image. Min radius is radius as fraction of image dimension
+            Max radius is radius as fraction of image dimension. Data on fit stored in image props
+            Takes in a smooth image, 7x7 kernal 
+        """
+        image_dimension = self.img_shape[0]
+        min_radius = image_dimension*min_radius_fraction
+        max_radius = image_dimension*max_radius_fraction
+        min_distance = min_radius*min_distance_ratio
+        circle_data = cv2.HoughCircles(image = self.img, dp = dp, method = method,
+                                        minDist = min_distance, param1= param_1,
+                                        param2= param_2, minRadius = min_radius, maxRadius = max_radius)
+        return circle_data
 ####################################################################################################
 #utils
 

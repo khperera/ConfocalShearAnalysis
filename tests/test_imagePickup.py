@@ -46,7 +46,7 @@ class TestImageModule(unittest.TestCase):
 
         image_import.read_location(testlocation)
         image_storage.store_image(image_import.return_image(),
-                                    {"ImageType":"Raw","Name":"TestImage"})
+                                  )
         self.assertTrue(image_export.save_image(image_storage))
 
 
@@ -58,8 +58,8 @@ class TestImageModule(unittest.TestCase):
         image_export = exporter.ImageExporter(config_file_path="./config/testingconfig.json")
 
         image_importer.read_location(testlocation)
-        image_storage.store_image(image_importer.return_image(),
-                                  {"ImageType":"Raw","Name":"TestImage"})
+        image_storage.store_image(img = image_importer.return_image(),
+                                   image_type= "raw")
         image_export.save_image(image_storage)
 
         image_segment= segmentor.ImageSegment()
