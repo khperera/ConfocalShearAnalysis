@@ -30,7 +30,8 @@ class ImageSegment():
         self.canny_filter_parameters = config["segment_config"]["canny_filter_parameters"]
         self.hough_filter_parameters = config["segment_config"]["hough_filter_parameters"]
         self.hough_filter_marker = config["segment_config"]["hough_filter_marker"]
-        
+        self.histogram_equilization_parameters = config["segment_config"]["histogram_equilization_parameters"]
+        self.histogram_equilization_marker = config["segment_config"]["histogram_equilization_marker"]
         #create default image.
         self.img = np.zeros((1,1,3), dtype=np.uint8)
         self.img_shape = None
@@ -48,6 +49,10 @@ class ImageSegment():
         self.img_shape = image_holder.return_image_size()
         img_info["image_type"] = "Segment"
         self.convert_to_single_channel(channel = 2)
+
+        if self.histogram_equilization_marker:
+            self.histogram_equilization(**self.histogram_equilization_parameters)
+
         if self.bilateral_filter_marker:
             self.bilateral_filter(**self.bilateral_filter_parameters)
         if self.canny_filter_marker:
@@ -63,7 +68,7 @@ class ImageSegment():
                 dictionary_fit = image_holder.return_fit_dictionary()
                 dictionary_fit["position"] = circle_data.tolist()
                 self.draw_hough_circles(circle_data)
-                image_holder.store_image(self.img)
+        image_holder.store_image(self.img)
             
 ####################################################################################################
 #filters
@@ -83,13 +88,24 @@ class ImageSegment():
         """Applies openCV's adaptive threshold method"""
         self.img = cv2.adaptiveThreshold(self.img,
                                       max_value,
-                                      cv2.ADAPTIVE_THRESH_MEAN_C,
+                                      cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                       cv2.THRESH_BINARY,
                                       block_size, c)
 
     def canny_filter(self, threshold_1: int = 10, threshold_2: int = 10) -> None:
         """Applies openCV's canny filter method"""
         self.img = cv2.Canny(self.img,threshold1=threshold_1,threshold2=threshold_2)
+
+    def histogram_equilization(self, method: int = 0, cliplimit: float = 2.0,
+                                tile_grid_size: int = 8) -> None:
+        """Applies either histogram equilization or adaptive based on input parameters"""
+        if method ==0 :
+            self.img = cv2.equalizeHist(self.img)
+        else:
+            clahe = cv2.createCLAHE(clipLimit=cliplimit,
+                                     tileGridSize=(tile_grid_size,tile_grid_size))
+            self.img = clahe.apply(self.img)
+
 
     def apply_hough_circle(self, method: int = 1, dp: float = 1.5,
                      min_distance_ratio: int = 10, param_1: int = 200, param_2: int = 0.9,
