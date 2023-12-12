@@ -28,8 +28,8 @@ class ImageSegment():
         self.adaptive_filter_parameters = config["segment_config"]["adaptive_filter_parameters"]
         self.canny_filter_marker = config["segment_config"]["canny_filter_marker"]
         self.canny_filter_parameters = config["segment_config"]["canny_filter_parameters"]
-        hough_filter_parameters = config["segment_config"]["hough_filter_parameters"]
-        hough_filter_marker = config["segment_config"]["hough_filter_marker"]
+        self.hough_filter_parameters = config["segment_config"]["hough_filter_parameters"]
+        self.hough_filter_marker = config["segment_config"]["hough_filter_marker"]
         
         #create default image.
         self.img = np.zeros((1,1,3), dtype=np.uint8)
@@ -58,9 +58,12 @@ class ImageSegment():
         image_holder.store_image(self.img,image_type="Segment")
 
         if self.hough_filter_marker:
-            circle_data = self.apply_hough_circle()
-            dictionary_fit = image_holder.return_fit_dictionary()
-            dictionary_fit["Position"] = circle_data
+            circle_data = self.apply_hough_circle(**self.hough_filter_parameters)
+            if circle_data is not None:
+                dictionary_fit = image_holder.return_fit_dictionary()
+                dictionary_fit["position"] = circle_data.tolist()
+                self.draw_hough_circles(circle_data)
+                image_holder.store_image(self.img)
             
 ####################################################################################################
 #filters
@@ -88,21 +91,44 @@ class ImageSegment():
         """Applies openCV's canny filter method"""
         self.img = cv2.Canny(self.img,threshold1=threshold_1,threshold2=threshold_2)
 
-    def apply_hough_circle(self, method: str = "HOUGH_GRADIENT", dp: float = 1.5,
-                     min_distance_ratio: int = 0, param_1: int = 200, param_2: int = 0.9,
+    def apply_hough_circle(self, method: int = 1, dp: float = 1.5,
+                     min_distance_ratio: int = 10, param_1: int = 200, param_2: int = 0.9,
                      min_radius_fraction = 0.01, max_radius_fraction: int = 0.05)-> npt.ArrayLike:
         """Extracts hough circles from image. Min radius is radius as fraction of image dimension
             Max radius is radius as fraction of image dimension. Data on fit stored in image props
             Takes in a smooth image, 7x7 kernal 
         """
+        if method == 0:
+            method_in = cv2.HOUGH_GRADIENT
+        else:
+            method_in = cv2.HOUGH_GRADIENT_ALT
+
+
         image_dimension = self.img_shape[0]
-        min_radius = image_dimension*min_radius_fraction
-        max_radius = image_dimension*max_radius_fraction
-        min_distance = min_radius*min_distance_ratio
-        circle_data = cv2.HoughCircles(image = self.img, dp = dp, method = method,
+
+        min_radius = int(image_dimension*min_radius_fraction)
+        max_radius = int(image_dimension*max_radius_fraction)
+        min_distance = int(min_radius*min_distance_ratio)
+
+        circle_data = cv2.HoughCircles(image = self.img, dp = dp, method = method_in,
                                         minDist = min_distance, param1= param_1,
-                                        param2= param_2, minRadius = min_radius, maxRadius = max_radius)
-        return circle_data
+                                        param2= param_2, minRadius = min_radius,
+                                        maxRadius = max_radius)
+        if circle_data is None:
+            return None
+        else:
+            return np.uint16(np.around(circle_data))
+
+
+    def draw_hough_circles(self, list_circles: npt.ArrayLike = None) -> None:
+        """Draws a Hough Circle on an image"""
+        self.img = cv2.merge([self.img,self.img,self.img])
+        for circle in list_circles[0,:]:
+            center = (circle[0],circle[1])
+            radius = circle[2]
+            color = (0,255,0)
+            thickness = 2
+            cv2.circle(self.img, center, radius, color, thickness) 
 ####################################################################################################
 #utils
 

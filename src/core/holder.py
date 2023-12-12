@@ -15,7 +15,11 @@ class ImageHolder:
     def __init__(self, img: npt.ArrayLike = np.zeros((1), dtype=np.uint8),
                 image_type: str = "Raw", name: str = "Default", z_position: int = -1,
                 time: int = -1, fit_data: dict = None) -> None:
-        self.img_info = {"image_type" : image_type, "name" : name,
+        if fit_data is None:
+            self.img_info = {"image_type" : image_type, "name" : name,
+                         "z_position" : z_position, "time": time, "fit_data" : {"position":{},"connections":{}}}
+        else:
+            self.img_info = {"image_type" : image_type, "name" : name,
                          "z_position" : z_position, "time": time, "fit_data" : fit_data}
         self.img = img
         self.img_original = np.zeros((1,1,3), dtype=np.uint8)
@@ -46,10 +50,9 @@ class ImageHolder:
             self.img_info["time"] = time
         if fit_data is not None:
             self.img_info["fit_data"] = fit_data
-   
     def return_fit_dictionary(self) -> dict:
         """Returns the dictionary to be edited"""
-        return self.image_info["fit_data"]
+        return self.img_info["fit_data"]
 
     def return_image(self) ->  npt.ArrayLike:
         """Returns the image"""

@@ -2,6 +2,7 @@
 Module for developing a class to export files to user specifed location
 """
 import os
+import json
 import cv2
 import numpy.typing as npt
 from src.core import holder
@@ -14,6 +15,7 @@ class ImageExporter:
 
         config = tools.load_config(config_file_path)
         self.image_save_location = config["DataSaveLocation"]
+        self.last_saved_location = ""
 
     def save_image(self, image_holder: holder.ImageHolder) -> npt.ArrayLike:
         """saves an image to folder given an imageholder. 
@@ -23,11 +25,10 @@ class ImageExporter:
         img = image_holder.return_image()
 
         image_type = str(img_info["image_type"])
-       
         name = str(img_info["name"])
         #generate names
         save_dir = self.image_save_location+str(image_type)+"Image/"
-
+        self.last_saved_location = save_dir
 
         save_location = save_dir + name + ".tiff"
 
@@ -43,4 +44,9 @@ class ImageExporter:
             os.makedirs(directory_location)
             return False
         return True
+
+    def save_json(self, property_dictionary: dict = None) -> None:
+        """given a dictionary, saves the properties of an image collection to a file."""
+        with open(self.last_saved_location+"collection_properties.json","w",encoding="utf-8") as f:
+            json.dump(property_dictionary,f,ensure_ascii=False, indent = 4)
         

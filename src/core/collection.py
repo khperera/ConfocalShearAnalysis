@@ -83,15 +83,30 @@ class ImageCollection():
             self.image_storage[max(self.image_storage)+1] = image_holder
 
     def save_files(self, save_location = ""):
-        """saves images to specified folder. Returns true if all files saved"""
+        """saves images to specified folder. Returns true if all files saved. Saves the 
+        config file as well
+        """
         if save_location != "":
             self.save_location = save_location
+        
+
         config_file_path_save = self.config_file_path
         image_saver = exporter.ImageExporter(config_file_path=config_file_path_save)
+
+        #dictionary of image properties.
+        image_dictionary = {}
+        
+
         truth_statement = True
 
         for image in self.image_storage.values():
+            image_properties = image.return_image_info()
+            image_name = image_properties["name"]
             truth_statement = truth_statement and image_saver.save_image(image)
+            image_dictionary[image_name] = image_properties
+
+        image_saver.save_json(property_dictionary=image_dictionary)
+
         return truth_statement
 
 
