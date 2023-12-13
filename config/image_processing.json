@@ -4,7 +4,7 @@
     "DataSaveLocation" : "./data/ProcessedData/",
     "segment_config":
       {
-        "bilateral_filter_marker": true,
+        "bilateral_filter_marker": false,
         "bilateral_filter_parameters": 
         {
             "d":9,
@@ -29,13 +29,13 @@
         {
           "method" : 1,
           "dp" : 1.5,
-          "min_distance_ratio" : 1,
+          "min_distance_ratio" : 2,
           "param_1" : 100,
-          "param_2" : 0.9,
-          "min_radius_fraction" : 0.05,
-          "max_radius_fraction" : 0.1
+          "param_2" : 0.6,
+          "min_radius_fraction" : 0.005,
+          "max_radius_fraction" : 0.05
         },
-        "histogram_equilization_marker": true,
+        "histogram_equilization_marker": false,
         "histogram_equilization_parameters":
         {
           "method" : 1,

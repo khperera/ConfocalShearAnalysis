@@ -63,7 +63,7 @@ class ImageHolder:
 
     def store_original_img(self) -> None:
         """Stores original image, just in case you want to utilize original image."""
-        self.img_original = self.img
+        self.img_original = self.img.copy()
 
     def return_image_info(self) ->  dict:
         """returns the information about an image"""

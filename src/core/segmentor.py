@@ -53,7 +53,7 @@ class ImageSegment():
 
         if self.histogram_equilization_marker:
             self.histogram_equilization(**self.histogram_equilization_parameters)
-
+        self.difference_guassians(sigma_1=5,sigma_2=11, simga_image= 9)
         if self.bilateral_filter_marker:
             self.bilateral_filter(**self.bilateral_filter_parameters)
         if self.canny_filter_marker:
@@ -62,15 +62,17 @@ class ImageSegment():
         if self.adaptive_filter_marker:
             self.adaptive_threshold(**self.adaptive_filter_parameters)
         image_holder.store_image(self.img,image_type="Segment")
-
+        
         if self.hough_filter_marker:
             circle_data = self.apply_hough_circle(**self.hough_filter_parameters)
             if circle_data is not None:
                 dictionary_fit = image_holder.return_fit_dictionary()
                 dictionary_fit["position"] = circle_data.tolist()
+                #self.img = image_holder.return_original_image()
+                #self.convert_to_single_channel(channel = 2)
                 self.draw_hough_circles(circle_data)
         image_holder.store_image(self.img)
-            
+       
 ####################################################################################################
 #filters
 
@@ -97,9 +99,11 @@ class ImageSegment():
         """Does a cutoff threshold below a certain value. Meaning, 0 below a certain brightness"""
         self.img = cv2.threshold(self.img, threshold_value, 255, cv2.THRESH_TOZERO)[1]
 
-    def difference_guassians(self, sigma_1: int = 1, ):
+    def difference_guassians(self, sigma_1: int = 1, sigma_2: int = 3, simga_image: int = 3):
         """Applies difference of Guassians filter"""
-        pass
+        guassian1 = cv2.GaussianBlur(self.img,(sigma_1,sigma_1),0)
+        guassian2 = cv2.GaussianBlur(self.img, (sigma_2,sigma_2),0)
+        self.img = cv2.GaussianBlur(guassian2-guassian1, (simga_image,simga_image),0)
 
     def canny_filter(self, threshold_1: int = 10, threshold_2: int = 10) -> None:
         """Applies openCV's canny filter method"""
@@ -152,7 +156,7 @@ class ImageSegment():
             center = (circle[0],circle[1])
             radius = circle[2]
             color = (0,255,0)
-            thickness = 2
+            thickness = 1
             cv2.circle(self.img, center, radius, color, thickness) 
 ####################################################################################################
 #utils
