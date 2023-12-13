@@ -97,7 +97,7 @@ class ImageSegment():
         """Does a cutoff threshold below a certain value. Meaning, 0 below a certain brightness"""
         self.img = cv2.threshold(self.img, threshold_value, 255, cv2.THRESH_TOZERO)[1]
 
-    def difference_
+    #def difference_
 
     def canny_filter(self, threshold_1: int = 10, threshold_2: int = 10) -> None:
         """Applies openCV's canny filter method"""

@@ -5,7 +5,6 @@ A class that holds information about images, including the image and its data.
 import numpy as np
 import numpy.typing as npt
 
-
 class ImageHolder:
     """a class that holds an image and information about an image.
     dictionary must be of form.
@@ -17,7 +16,8 @@ class ImageHolder:
                 time: int = -1, fit_data: dict = None) -> None:
         if fit_data is None:
             self.img_info = {"image_type" : image_type, "name" : name,
-                         "z_position" : z_position, "time": time, "fit_data" : {"position":{},"connections":{}}}
+                         "z_position" : z_position, "time": time,
+                          "fit_data" : {"position":{},"connections":{}}}
         else:
             self.img_info = {"image_type" : image_type, "name" : name,
                          "z_position" : z_position, "time": time, "fit_data" : fit_data}

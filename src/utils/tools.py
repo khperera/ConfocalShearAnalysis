@@ -6,6 +6,15 @@ I.E. generating metadata and image files from lifs
 import os
 import json
 import shutil
+import readlif
+from readlif.reader import LifFile
+
+class ReadLiFFile:
+    """Class to read and generate .tif files from .lif files.
+    """
+    def __init__(self, lif_location: str = "") -> None:
+        self.lif_location = lif_location
+
 
 def clean_data_directory():
     """Deletes files and directories in the data folder"""

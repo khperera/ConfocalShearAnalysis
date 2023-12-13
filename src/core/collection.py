@@ -88,14 +88,12 @@ class ImageCollection():
         """
         if save_location != "":
             self.save_location = save_location
-        
 
         config_file_path_save = self.config_file_path
         image_saver = exporter.ImageExporter(config_file_path=config_file_path_save)
 
         #dictionary of image properties.
         image_dictionary = {}
-        
 
         truth_statement = True
 
