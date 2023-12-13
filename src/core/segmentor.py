@@ -2,7 +2,7 @@
 Class that is used to segment images.
 """
 import cv2
-import skimage
+from skimage.filters import difference_of_gaussians
 import numpy as np
 import numpy.typing as npt 
 from src.core import holder
@@ -97,7 +97,9 @@ class ImageSegment():
         """Does a cutoff threshold below a certain value. Meaning, 0 below a certain brightness"""
         self.img = cv2.threshold(self.img, threshold_value, 255, cv2.THRESH_TOZERO)[1]
 
-    def difference_
+    def difference_guassians(self, sigma_1: int = 1, ):
+        """Applies difference of Guassians filter"""
+        pass
 
     def canny_filter(self, threshold_1: int = 10, threshold_2: int = 10) -> None:
         """Applies openCV's canny filter method"""
