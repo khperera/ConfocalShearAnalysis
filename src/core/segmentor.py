@@ -2,8 +2,9 @@
 Class that is used to segment images.
 """
 import cv2
+import skimage
 import numpy as np
-import numpy.typing as npt
+import numpy.typing as npt 
 from src.core import holder
 from src.utils import tools
 
@@ -91,6 +92,12 @@ class ImageSegment():
                                       cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                       cv2.THRESH_BINARY,
                                       block_size, c)
+        
+    def cutoff_threshold(self, threshold_value: int = 125) -> None:
+        """Does a cutoff threshold below a certain value. Meaning, 0 below a certain brightness"""
+        self.img = cv2.threshold(self.img, threshold_value, 255, cv2.THRESH_TOZERO)[1]
+
+    def difference_
 
     def canny_filter(self, threshold_1: int = 10, threshold_2: int = 10) -> None:
         """Applies openCV's canny filter method"""
