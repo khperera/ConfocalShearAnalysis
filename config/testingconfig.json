@@ -24,7 +24,7 @@
         "threshold_1" : 5,
         "threshold_2" : 5
       },
-      "hough_filter_marker": false,
+      "hough_filter_marker": true,
       "hough_filter_parameters":
       {
         "method" : 1,
