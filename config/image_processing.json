@@ -4,19 +4,19 @@
     "DataSaveLocation" : "./data/ProcessedData/",
     "segment_config":
       {
-        "bilateral_filter_marker": false,
+        "bilateral_filter_marker": true,
         "bilateral_filter_parameters": 
         {
             "d":9,
-            "sigma_color":30,
-            "sigma_space":200
+            "sigma_color":150,
+            "sigma_space":59
         },
         "adaptive_filter_marker": false,
         "adaptive_filter_parameters":
         {
             "max_value": 255,
-            "block_size": 17,
-            "c": 0
+            "block_size": 25,
+            "c": 5
         },
         "canny_filter_marker": false,
         "canny_filter_parameters":
@@ -24,7 +24,7 @@
           "threshold_1" : 200,
           "threshold_2" : 210
         },
-        "hough_filter_marker": true,
+        "circle_filter_marker": false,
         "hough_filter_parameters":
         {
           "method" : 1,
@@ -35,13 +35,14 @@
           "min_radius_fraction" : 0.005,
           "max_radius_fraction" : 0.05
         },
-        "histogram_equilization_marker": false,
+        "histogram_equilization_marker": true,
         "histogram_equilization_parameters":
         {
-          "method" : 1,
+          "method" : 0,
           "cliplimit" : 2.0,
-          "tile_grid_size" : 50
-        }
+          "tile_grid_size" : 5
+        },
+        "display_original_img" : false
 
       }
     

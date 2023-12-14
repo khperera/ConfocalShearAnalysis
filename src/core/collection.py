@@ -9,8 +9,11 @@ done sequentially on each set of objects, then stored, next set open.
 """
 
 import glob
+import numpy as np
+import numpy.typing as npt
 from src.core import holder, segmentor, exporter, importer
 from src.utils import tools
+
 
 class ImageCollection():
     """Class that holds images and applies operations to whole collection.
@@ -50,6 +53,8 @@ class ImageCollection():
         #holds the image holders
         #  relevant parameter : imageHolder Object
         self.image_storage = {}
+        self.stack_3d = None
+        self.holder_3d = None
         #self.total_files = 0
 
 ##########################################################
@@ -108,7 +113,27 @@ class ImageCollection():
         image_saver.save_json(property_dictionary=image_dictionary)
 
         return truth_statement
+    
+    def extract_numpy_imgs(self) -> npt.ArrayLike:
+        """Extracts the images from image holders"""
+        img_stack = []
+        for image in self.image_storage.values():
+            img_stack.append(image.return_image())
 
+        return img_stack
+    
+    def convert_to_3d(self) -> holder.ImageHolder:
+        """Converts the image stack to a 3D image array"""
+        self.stack_3d = np.dstack(tuple(self.extract_numpy_imgs()))
+        self.holder_3d = holder.ImageHolder(img = self.stack_3d)
+
+      
+    def segment_3d_image(self, segment_config_file_path = None):
+        """applies a segmentation operation to 3D stack. Can give a custom config"""
+        if segment_config_file_path is None:
+            config_file_path_segment = self.config_file_path
+        image_segmentor = segmentor.ImageSegment(config_file_path=config_file_path_segment)
+        image_segmentor.apply_segmentation(self.holder_3d)
 
 ############################################################
 #Class utilies/helper functions

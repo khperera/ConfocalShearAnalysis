@@ -2,9 +2,13 @@
 Class that is used to segment images.
 """
 import cv2
-from skimage.filters import difference_of_gaussians
 import numpy as np
-import numpy.typing as npt 
+import numpy.typing as npt
+from skimage import filters
+from skimage import img_as_ubyte
+import skimage as ski
+from src.utils.particlefinder_nogpu import MultiscaleBlobFinder
+from src.utils import rescale
 from src.core import holder
 from src.utils import tools
 
@@ -30,11 +34,14 @@ class ImageSegment():
         self.canny_filter_marker = config["segment_config"]["canny_filter_marker"]
         self.canny_filter_parameters = config["segment_config"]["canny_filter_parameters"]
         self.hough_filter_parameters = config["segment_config"]["hough_filter_parameters"]
-        self.hough_filter_marker = config["segment_config"]["hough_filter_marker"]
+        self.circle_filter_marker = config["segment_config"]["hough_filter_marker"]
         self.histogram_equilization_parameters = config["segment_config"]["histogram_equilization_parameters"]
         self.histogram_equilization_marker = config["segment_config"]["histogram_equilization_marker"]
+
+        self.display_original_img = config["segment_config"]["display_original_img"]
         #create default image.
         self.img = np.zeros((1,1,3), dtype=np.uint8)
+        self.img_original = np.zeros((1,1,3), dtype=np.uint8)
         self.img_shape = None
         
 ####################################################################################################
@@ -46,14 +53,17 @@ class ImageSegment():
     def apply_segmentation(self, image_holder: holder.ImageHolder = holder.ImageHolder()):
         """Given the config file, applies segmentation across all images in stack"""
         self.img = image_holder.return_image()
+        self.img_original = self.img.copy()
         img_info = image_holder.return_image_info()
         self.img_shape = image_holder.return_image_size()
         img_info["image_type"] = "Segment"
         self.convert_to_single_channel(channel = 2)
 
+        #self.difference_guassians(15,9)
         if self.histogram_equilization_marker:
             self.histogram_equilization(**self.histogram_equilization_parameters)
-        self.difference_guassians(sigma_1=5,sigma_2=11, simga_image= 9)
+        #self.cutoff_threshold()
+        #self.difference_guassians(sigma_1=5,sigma_2=11, simga_image= 9)
         if self.bilateral_filter_marker:
             self.bilateral_filter(**self.bilateral_filter_parameters)
         if self.canny_filter_marker:
@@ -61,17 +71,25 @@ class ImageSegment():
 
         if self.adaptive_filter_marker:
             self.adaptive_threshold(**self.adaptive_filter_parameters)
+
         image_holder.store_image(self.img,image_type="Segment")
-        
-        if self.hough_filter_marker:
-            circle_data = self.apply_hough_circle(**self.hough_filter_parameters)
-            if circle_data is not None:
-                dictionary_fit = image_holder.return_fit_dictionary()
-                dictionary_fit["position"] = circle_data.tolist()
-                #self.img = image_holder.return_original_image()
-                #self.convert_to_single_channel(channel = 2)
-                self.draw_hough_circles(circle_data)
-        image_holder.store_image(self.img)
+
+        if self.circle_filter_marker:
+            if self.hough_filter_parameters["method"] == 2:
+                self.find_particle_centers()
+            else:
+                circle_data = self.apply_hough_circle(**self.hough_filter_parameters)
+                if circle_data is not None:
+                    dictionary_fit = image_holder.return_fit_dictionary()
+                    dictionary_fit["position"] = circle_data.tolist()
+                    #self.img = image_holder.return_original_image()
+                    #self.convert_to_single_channel(channel = 2)
+                    self.draw_hough_circles(circle_data)
+
+        if self.display_original_img:
+            image_holder.store_image(self.img_original)
+        else:
+            image_holder.store_image(self.img)
        
 ####################################################################################################
 #filters
@@ -94,7 +112,7 @@ class ImageSegment():
                                       cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                       cv2.THRESH_BINARY,
                                       block_size, c)
-        
+
     def cutoff_threshold(self, threshold_value: int = 125) -> None:
         """Does a cutoff threshold below a certain value. Meaning, 0 below a certain brightness"""
         self.img = cv2.threshold(self.img, threshold_value, 255, cv2.THRESH_TOZERO)[1]
@@ -157,7 +175,51 @@ class ImageSegment():
             radius = circle[2]
             color = (0,255,0)
             thickness = 1
-            cv2.circle(self.img, center, radius, color, thickness) 
+            cv2.circle(self.img, center, radius, color, thickness)
+
+    def draw_pyrtrack_circles(self, centers: npt.ArrayLike = None, radii: npt.ArrayLike = None) -> None:
+        """Draws circles made in pyrtrack"""
+        if self.display_original_img:
+            utilized_img = self.img_original
+        else:
+            utilized_img = cv2.merge([self.img,self.img,self.img])
+        
+        if radii is not None:
+            particledata = zip(centers[:,0], centers[:,1], radii)
+        else:
+            particledata = zip(centers[:,0], centers[:,1], centers[:,2])
+
+
+        for x,y,r in particledata:
+            center = (int(x),int(y))
+            radius = int(r)
+            color = (0,255,0)
+            thickness = 1
+            cv2.circle(utilized_img, center, radius, color, thickness)
+        if self.display_original_img:
+            self.img_original = utilized_img
+        else:
+            self.img = utilized_img
+
+
+
+    def find_particle_centers(self)-> None:
+        """Uses prytrack to find particle centers"""
+        self.convert_to_scikit_image()
+        finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
+        centers = finder(self.img, maxedge=-1)
+        rescale_intensity = True
+        if rescale_intensity:
+            s = rescale.radius2sigma(centers[:,-2], dim=2)
+            bonds, dists = rescale.get_bonds(positions=centers[:,:-2], radii=centers[:,-2], maxdist=3.0)
+            brights1 = rescale.solve_intensities(s, bonds, dists, centers[:,-1])
+            radii1 = rescale.global_rescale_intensity(s, bonds, dists, brights1)
+
+        self.convert_to_opencv_image()
+
+        self.draw_pyrtrack_circles(centers,radii1)
+
+
 ####################################################################################################
 #utils
 
@@ -168,3 +230,11 @@ class ImageSegment():
         #channel 0,1,2 is b,g,r
         """
         self.img = np.uint8(cv2.split(self.img)[channel])
+
+    def convert_to_scikit_image(self):
+        """Converts an opencv image to scikit-image version, single channel"""
+        ski.util.img_as_float(self.img)
+
+    def convert_to_opencv_image(self):
+        """Converts a scikit image to opencv image, single channel"""
+        self.img = img_as_ubyte(self.img)
