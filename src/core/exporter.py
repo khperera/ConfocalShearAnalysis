@@ -5,6 +5,7 @@ import os
 import json
 import cv2
 import numpy.typing as npt
+from skimage import io,color
 from src.core import holder
 from src.utils import tools
 
@@ -50,3 +51,19 @@ class ImageExporter:
         with open(self.last_saved_location+"collection_properties.json","w",encoding="utf-8") as f:
             json.dump(property_dictionary,f,ensure_ascii=False, indent = 4)
         
+
+    def save_3d_image(self, image_holder: holder.ImageHolder) -> npt.ArrayLike:
+        """Saves a 3D image as a tiff"""
+        img_info = image_holder.return_image_info()
+        img = image_holder.return_image()
+
+        image_type = str(img_info["image_type"])
+        name = "3Dstack"+str(img_info["name"])
+        #generate names
+        save_dir = self.image_save_location+str(image_type)+"Image/"
+        self.last_saved_location = save_dir
+
+        save_location = save_dir + name + ".tiff"
+
+        self.make_dir(save_dir)
+        io.imsave(save_location,img)

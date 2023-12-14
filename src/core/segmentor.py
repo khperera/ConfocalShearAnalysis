@@ -34,7 +34,7 @@ class ImageSegment():
         self.canny_filter_marker = config["segment_config"]["canny_filter_marker"]
         self.canny_filter_parameters = config["segment_config"]["canny_filter_parameters"]
         self.hough_filter_parameters = config["segment_config"]["hough_filter_parameters"]
-        self.circle_filter_marker = config["segment_config"]["hough_filter_marker"]
+        self.circle_filter_marker = config["segment_config"]["circle_filter_marker"]
         self.histogram_equilization_parameters = config["segment_config"]["histogram_equilization_parameters"]
         self.histogram_equilization_marker = config["segment_config"]["histogram_equilization_marker"]
 
