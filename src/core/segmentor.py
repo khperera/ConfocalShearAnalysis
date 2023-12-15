@@ -57,7 +57,7 @@ class ImageSegment():
         img_info = image_holder.return_image_info()
         self.img_shape = image_holder.return_image_size()
         img_info["image_type"] = "Segment"
-        self.convert_to_single_channel(channel = 2)
+        self.convert_to_single_channel(channel = 1)
 
         #self.difference_guassians(15,9)
         if self.histogram_equilization_marker:

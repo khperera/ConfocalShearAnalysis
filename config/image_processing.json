@@ -1,10 +1,10 @@
 {
     
     "DataReadLocation": "./data/before_exp/",
-    "DataSaveLocation" : "./data/ProcessedData/",
+    "DataSaveLocation" : "./data/ProcessedData2/",
     "segment_config":
       {
-        "bilateral_filter_marker": true,
+        "bilateral_filter_marker": false,
         "bilateral_filter_parameters": 
         {
             "d":9,

@@ -1,12 +1,12 @@
 """
-Class that is used to segment images.
+Class that is used to segment 3D images. Must feed in unblurred images.
 """
 import numpy as np
 import numpy.typing as npt
 from skimage import filters
 from skimage import img_as_ubyte
 import skimage as ski
-from src.utils.particlefinder_nogpu import MultiscaleBlobFinder
+from src.utils.particlefinder_nogpu import MultiscaleBlobFinder, OctaveBlobFinder, get_deconv_kernel
 from src.utils import rescale
 from src.core import holder
 from src.utils import tools
@@ -33,7 +33,7 @@ class ImageSegment():
         self.img_original = np.zeros((1,1,3), dtype=np.uint8)
         self.img_shape = None
         self.particle_centers = None
-        
+        self.kernel = None
 ####################################################################################################
 #main function. callable by other functions, classes
 
@@ -55,39 +55,16 @@ class ImageSegment():
 ####################################################################################################
 #filters
 
-
-
-    def draw_pyrtrack_circles(self, centers: npt.ArrayLike = None, radii: npt.ArrayLike = None) -> None:
-        """Draws circles made in pyrtrack"""
-        if self.display_original_img:
-            utilized_img = self.img_original
-        else:
-            utilized_img = cv2.merge([self.img,self.img,self.img])
-        
-        if radii is not None:
-            particledata = zip(centers[:,0], centers[:,1], radii)
-        else:
-            particledata = zip(centers[:,0], centers[:,1], centers[:,2])
-
-
-        for x,y,r in particledata:
-            center = (int(x),int(y))
-            radius = int(r)
-            color = (0,255,0)
-            thickness = 1
-            #cv2.circle(utilized_img, center, radius, color, thickness)
-        if self.display_original_img:
-            self.img_original = utilized_img
-        else:
-            self.img = utilized_img
-
-
+    def create_kernel(self) -> None:
+        """Creates deconvulusion kernel"""
+        self.kernel = get_deconv_kernel(self.img, pxZ = 9, pxX=0.579)
 
     def find_particle_centers(self)-> None:
         """Uses prytrack to find particle centers"""
         self.convert_to_scikit_image()
+        self.create_kernel()
         finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
-        centers = finder(self.img, maxedge=-1)
+        centers = finder(self.img, maxedge=-1,deconvKernel=self.kernel)
         rescale_intensity = True
         if rescale_intensity:
             s = rescale.radius2sigma(centers[:,-2], dim=2)
@@ -99,6 +76,21 @@ class ImageSegment():
         self.particle_centers = particledata
 
         return particledata
+
+
+    def save_cuts(self, X= 50, Y = 50, Z = 25):
+        """Saves cuts to folder and displays circles on them"""
+        z_cut = self.img
+
+
+
+
+
+
+
+
+
+
 
 ####################################################################################################
 #utils
