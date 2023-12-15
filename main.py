@@ -11,7 +11,7 @@ def main():
     image_collection.segment_3d_image()
     particle_data = image_collection.return_3d_particledata()
     image_collection.save_files()
-    viewer.plotfigure(particle_data)
+    viewer.mayavi_sphere_points3d(particle_data)
 if __name__ == "__main__":
     main()
     
