@@ -6,6 +6,9 @@ import json
 import cv2
 import numpy.typing as npt
 from skimage import io,color
+import matplotlib.pyplot as plt
+from matplotlib.patches import Circle
+from matplotlib.collections import PatchCollection
 from src.core import holder
 from src.utils import tools
 
@@ -67,3 +70,34 @@ class ImageExporter:
 
         self.make_dir(save_dir)
         io.imsave(save_location,img)
+
+
+    def save_3d_cuts(self,  image_holder: holder.ImageHolder = None, circle_data: npt.ArrayLike = None):
+        """Saves image holder that represent 3D cuts and draws circles on them.
+          Assumes scikit images"""
+        title = image_holder.return_image_info()["name"]
+        img = image_holder.return_image()
+        plt.clf()
+        print(img.shape)
+        fig1 = plt.imshow(img, cmap='gray')
+        self.draw_circles(circle_data)
+
+
+        #save directory:
+        #generate names
+        img_info = image_holder.return_image_info()
+        img = image_holder.return_image()
+        image_type = str(img_info["image_type"])
+        name = str(img_info["name"])
+        save_dir = self.image_save_location+str(image_type)+"Image/"
+        self.make_dir(save_dir)
+        save_location = save_dir + name + ".tiff"
+        plt.title(name)
+        plt.savefig(save_location)
+        plt.close()
+        
+        
+    def draw_circles(self, particle_data: npt.ArrayLike = None) -> None:
+        circles = [Circle((x1,x2), r, edgecolor='red', facecolor='none') for x1, x2, r in list(particle_data)]
+        circle_collection = PatchCollection(circles, match_original=True)
+        plt.gca().add_collection(circle_collection)

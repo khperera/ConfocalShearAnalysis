@@ -143,6 +143,7 @@ class ImageCollection():
         image_segmentor = segmentor_3d.ImageSegment(config_file_path=config_file_path_segment)
         image_segmentor.apply_segmentation(self.holder_3d)
         self.particle_data3d = image_segmentor.return_particledata()
+        image_segmentor.save_cuts()
 
     def return_3d_particledata(self):
         """returns the 3d particle data"""

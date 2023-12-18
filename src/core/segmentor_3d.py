@@ -8,7 +8,7 @@ from skimage import img_as_ubyte
 import skimage as ski
 from src.utils.particlefinder_nogpu import MultiscaleBlobFinder, OctaveBlobFinder, get_deconv_kernel
 from src.utils import rescale
-from src.core import holder
+from src.core import holder, exporter
 from src.utils import tools
 
 
@@ -34,6 +34,7 @@ class ImageSegment():
         self.img_shape = None
         self.particle_centers = None
         self.kernel = None
+        self.config_file_path= config_file_path
 ####################################################################################################
 #main function. callable by other functions, classes
 
@@ -78,11 +79,41 @@ class ImageSegment():
         return particledata
 
 
-    def save_cuts(self, X= 50, Y = 50, Z = 25):
-        """Saves cuts to folder and displays circles on them"""
-        z_cut = self.img
+    def save_cuts(self, x_divs = 4, y_divs = 4, z_divs = 4):
+        """Call after segmenting and getting particle data
+        Saves cuts and displays circles on them, saves to holder then exports"""
+        img_size = self.img.shape
+        x_size = img_size[1]/x_divs
+        y_size = img_size[2]/y_divs
+        z_size = img_size[0]/z_divs
 
+        saver = exporter.ImageExporter(config_file_path=self.config_file_path)
+        #need to find particle that are in plane with the cut and find radius that is in plane.
+        i = 1
+        #x_cuts
+        for x_div in range(x_divs):
+            pixel_dim = int(x_div*x_size)
+            yz_cut = self.img[:,pixel_dim].copy()
+            name = "yzcut_" + str(pixel_dim) + "pixels"
+            circles_in_dim = self.circles_in_dimension(x=pixel_dim)
+            holder_yz = holder.ImageHolder(yz_cut,image_type="3D_cut",name= name)
+            saver.save_3d_cuts(holder_yz,circles_in_dim)
 
+        for y_div in range(y_divs):
+            pixel_dim = int(y_div*y_size)
+            xz_cut = self.img[:,:,pixel_dim].copy()
+            name = "yzcut_" + str(pixel_dim) + "pixels"
+            circles_in_dim = self.circles_in_dimension(y=pixel_dim)
+            holder_xz = holder.ImageHolder(xz_cut,image_type="3D_cut",name= name)
+            saver.save_3d_cuts(holder_xz,circles_in_dim)
+
+        for z_div in range(z_divs):
+            pixel_dim = int(z_div*z_size)
+            xy_cut = self.img[pixel_dim].copy()
+            name = "xycut_" + str(pixel_dim) + "pixels"
+            circles_in_dim = self.circles_in_dimension(z=pixel_dim)
+            holder_xy = holder.ImageHolder(xy_cut,image_type="3D_cut",name= name)
+            saver.save_3d_cuts(holder_xy,circles_in_dim)
 
 
 
@@ -110,3 +141,33 @@ class ImageSegment():
     def convert_to_opencv_image(self):
         """Converts a scikit image to opencv image, single channel"""
         self.img = img_as_ubyte(self.img)
+
+    def circles_in_dimension(self,x: int = None,y: int = None,z: int = None)-> npt.ArrayLike:
+        """Returns the list of circles that are in the dimension and 
+        gives effect radius at that plane"""
+        positions = np.array(self.particle_centers)
+
+        if x is not None:
+            
+            x_values = positions[:,1]
+            r_values = positions[:, 3]
+            filtered_positions = positions[np.abs(x_values-x) - r_values <= 0]
+            filtered_positions[:,3] = np.sqrt((filtered_positions[:,1]**2-x**2))
+            
+            return np.delete(filtered_positions,1, axis = 1)
+        if y is not None:
+            
+            y_values = positions[:,2]
+            r_values = positions[:, 3]
+            filtered_positions = positions[np.abs(y_values-y) - r_values <= 0]
+            filtered_positions[:,3] = np.sqrt((filtered_positions[:,2]**2-y**2))
+            return np.delete(filtered_positions,2, axis = 1)
+        if z is not None:
+            
+            z_values = positions[:,0]
+            r_values = positions[:, 3]
+            filtered_positions = positions[np.abs(z_values-z) - r_values <= 0]
+            filtered_positions[:,3] = np.sqrt((filtered_positions[:,0]**2-z**2))
+            return np.delete(filtered_positions,0, axis = 1)
+
+        return positions
