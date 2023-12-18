@@ -58,20 +58,22 @@ class ImageSegment():
 
     def create_kernel(self) -> None:
         """Creates deconvulusion kernel"""
-        self.kernel = get_deconv_kernel(self.img, pxZ = 9, pxX=0.579)
+        self.kernel = get_deconv_kernel(self.img, pxZ = 1, pxX=1)
 
     def find_particle_centers(self)-> None:
         """Uses prytrack to find particle centers"""
         self.convert_to_scikit_image()
         self.create_kernel()
         finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
-        centers = finder(self.img, maxedge=-1,deconvKernel=self.kernel)
+        centers = finder(self.img, maxedge=-1)
         rescale_intensity = True
         if rescale_intensity:
             s = rescale.radius2sigma(centers[:,-2], dim=2)
             bonds, dists = rescale.get_bonds(positions=centers[:,:-2], radii=centers[:,-2], maxdist=3.0)
             brights1 = rescale.solve_intensities(s, bonds, dists, centers[:,-1])
             radii1 = rescale.global_rescale_intensity(s, bonds, dists, brights1)
+        else:
+            radii1 = centers[:,-2]
 
         particledata = list(zip(centers[:,0], centers[:,1], centers[:,2], radii1))
         self.particle_centers = particledata
@@ -79,12 +81,13 @@ class ImageSegment():
         return particledata
 
 
-    def save_cuts(self, x_divs = 4, y_divs = 4, z_divs = 4):
+    def save_cuts(self, x_divs = 50, y_divs = 10, z_divs = 5):
         """Call after segmenting and getting particle data
         Saves cuts and displays circles on them, saves to holder then exports"""
         img_size = self.img.shape
-        x_size = img_size[1]/x_divs
-        y_size = img_size[2]/y_divs
+        print(img_size)
+        x_size = img_size[2]/x_divs
+        y_size = img_size[1]/y_divs
         z_size = img_size[0]/z_divs
 
         saver = exporter.ImageExporter(config_file_path=self.config_file_path)
@@ -93,7 +96,7 @@ class ImageSegment():
         #x_cuts
         for x_div in range(x_divs):
             pixel_dim = int(x_div*x_size)
-            yz_cut = self.img[:,pixel_dim].copy()
+            yz_cut = self.img[:,:,pixel_dim].copy()
             name = "yzcut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(x=pixel_dim)
             holder_yz = holder.ImageHolder(yz_cut,image_type="3D_cut",name= name)
@@ -101,8 +104,8 @@ class ImageSegment():
 
         for y_div in range(y_divs):
             pixel_dim = int(y_div*y_size)
-            xz_cut = self.img[:,:,pixel_dim].copy()
-            name = "yzcut_" + str(pixel_dim) + "pixels"
+            xz_cut = self.img[:,pixel_dim].copy()
+            name = "xzcut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(y=pixel_dim)
             holder_xz = holder.ImageHolder(xz_cut,image_type="3D_cut",name= name)
             saver.save_3d_cuts(holder_xz,circles_in_dim)
@@ -149,25 +152,25 @@ class ImageSegment():
 
         if x is not None:
             
-            x_values = positions[:,1]
+            x_values = positions[:,0]
             r_values = positions[:, 3]
             filtered_positions = positions[np.abs(x_values-x) - r_values <= 0]
-            filtered_positions[:,3] = np.sqrt((filtered_positions[:,1]**2-x**2))
+            filtered_positions[:,3] = np.sqrt(filtered_positions[:,3]**2 - (filtered_positions[:,0]-x)**2)
             
-            return np.delete(filtered_positions,1, axis = 1)
+            return np.delete(filtered_positions,0, axis = 1)
         if y is not None:
             
-            y_values = positions[:,2]
+            y_values = positions[:,1]
             r_values = positions[:, 3]
             filtered_positions = positions[np.abs(y_values-y) - r_values <= 0]
-            filtered_positions[:,3] = np.sqrt((filtered_positions[:,2]**2-y**2))
-            return np.delete(filtered_positions,2, axis = 1)
+            filtered_positions[:,3] = np.sqrt(filtered_positions[:,3]**2 - (filtered_positions[:,1]-y)**2)
+            return np.delete(filtered_positions,1, axis = 1)
         if z is not None:
             
-            z_values = positions[:,0]
+            z_values = positions[:,2]
             r_values = positions[:, 3]
             filtered_positions = positions[np.abs(z_values-z) - r_values <= 0]
-            filtered_positions[:,3] = np.sqrt((filtered_positions[:,0]**2-z**2))
-            return np.delete(filtered_positions,0, axis = 1)
+            filtered_positions[:,3] = np.sqrt(filtered_positions[:,3]**2 - (filtered_positions[:,2]-z)**2)
+            return np.delete(filtered_positions,2, axis = 1)
 
         return positions
