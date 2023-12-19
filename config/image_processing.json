@@ -1,7 +1,7 @@
 {
     
     "DataReadLocation": "./data/before_exp/",
-    "DataSaveLocation" : "./data/ProcessedData2/",
+    "DataSaveLocation" : "./data/ProcessedData3_removeoveral_deconvovle_localminreject/",
     "segment_config":
       {
         "bilateral_filter_marker": false,
@@ -38,7 +38,7 @@
         "histogram_equilization_marker": true,
         "histogram_equilization_parameters":
         {
-          "method" : 0,
+          "method" : 1,
           "cliplimit" : 2.0,
           "tile_grid_size" : 5
         },

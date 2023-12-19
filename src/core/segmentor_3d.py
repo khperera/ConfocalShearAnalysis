@@ -65,10 +65,10 @@ class ImageSegment():
         self.convert_to_scikit_image()
         self.create_kernel()
         finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
-        centers = finder(self.img, maxedge=-1)
+        centers = finder(self.img, removeOverlap=True,deconvKernel=self.kernel)
         rescale_intensity = True
         if rescale_intensity:
-            s = rescale.radius2sigma(centers[:,-2], dim=2)
+            s = rescale.radius2sigma(centers[:,-2], dim=3)
             bonds, dists = rescale.get_bonds(positions=centers[:,:-2], radii=centers[:,-2], maxdist=3.0)
             brights1 = rescale.solve_intensities(s, bonds, dists, centers[:,-1])
             radii1 = rescale.global_rescale_intensity(s, bonds, dists, brights1)
