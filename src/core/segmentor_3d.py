@@ -5,6 +5,7 @@ import numpy as np
 import numpy.typing as npt
 from skimage import filters
 from skimage import img_as_ubyte
+from skimage.transform import rescale as scale1
 import skimage as ski
 from src.utils.particlefinder_nogpu import MultiscaleBlobFinder, OctaveBlobFinder, get_deconv_kernel
 from src.utils import rescale
@@ -45,6 +46,7 @@ class ImageSegment():
         """Given the config file, applies segmentation across all images in stack"""
 
         self.img = image_holder.return_image()
+        self.squish_axis()
         self.find_particle_centers()
         dictionary_fit = image_holder.return_fit_dictionary()
         dictionary_fit["position"] = self.particle_centers
@@ -65,7 +67,8 @@ class ImageSegment():
         self.convert_to_scikit_image()
         self.create_kernel()
         finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
-        centers = finder(self.img, removeOverlap=True,deconvKernel=self.kernel)
+        centers = finder(self.img, removeOverlap=False,deconvKernel=self.kernel)
+        print(centers)
         rescale_intensity = True
         if rescale_intensity:
             s = rescale.radius2sigma(centers[:,-2], dim=3)
@@ -74,7 +77,7 @@ class ImageSegment():
             radii1 = rescale.global_rescale_intensity(s, bonds, dists, brights1)
         else:
             radii1 = centers[:,-2]
-
+    
         particledata = list(zip(centers[:,0], centers[:,1], centers[:,2], radii1))
         self.particle_centers = particledata
 
@@ -118,7 +121,8 @@ class ImageSegment():
             holder_xy = holder.ImageHolder(xy_cut,image_type="3D_cut",name= name)
             saver.save_3d_cuts(holder_xy,circles_in_dim)
 
-
+    def squish_axis(self, x_squish: float = 0.75, y_squish: float = 0.75, z_squish: float =1):
+        self.img = scale1(self.img, (z_squish,x_squish,y_squish), anti_aliasing = True )
 
 
 

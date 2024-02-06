@@ -1,7 +1,7 @@
 {
     
-    "DataReadLocation": "./data/before_exp/",
-    "DataSaveLocation" : "./data/ProcessedData3_removeoveral_deconvovle_localminreject/",
+    "DataReadLocation": "./data/RawData_2p_2strain_1Hz/",
+    "DataSaveLocation" : "./data/RawData_2p_2strain_1Hz_processed/",
     "segment_config":
       {
         "bilateral_filter_marker": false,

@@ -1,5 +1,5 @@
 #import modules
-from src.core import collection#, viewer
+from src.core import collection, viewer
 from src.utils import tools
 def main():
     load_from_json = False
@@ -12,10 +12,10 @@ def main():
         image_collection.segment_3d_image()
         particle_data = image_collection.return_3d_particledata()
         image_collection.save_files()
-        #viewer.mayavi_sphere_points3d(particle_data)
+        viewer.mayavi_sphere_points3d(particle_data)
     else:
-        pass
-        #viewer.load_from_json("./data/ProcessedData/SegmentImage/collection_properties.json")
+        #pass
+        viewer.load_from_json("./data/ProcessedData/SegmentImage/collection_properties.json")
 if __name__ == "__main__":
     main()
     
