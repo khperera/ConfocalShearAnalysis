@@ -7,6 +7,7 @@ from skimage import filters
 from skimage import img_as_ubyte
 from skimage.transform import rescale as scale1
 import skimage as ski
+import matplotlib.pyplot as plt
 from src.utils.particlefinder_nogpu import MultiscaleBlobFinder, OctaveBlobFinder, get_deconv_kernel
 from src.utils import rescale
 from src.core import holder, exporter
@@ -78,13 +79,42 @@ class ImageSegment():
         else:
             radii1 = centers[:,-2]
     
-        particledata = list(zip(centers[:,0], centers[:,1], centers[:,2], radii1))
-        self.particle_centers = particledata
+        particledata = list(zip(centers[:,0], centers[:,1], centers[:,2], radii1, centers[:,-1]))
+        radius_threshold_high = 50
+        radius_threshold_low = 0
+        intensity_threshold_high = -.013
+
+        particledata_filtered =  [item for item in particledata if (item[3] < radius_threshold_high and item[3] > radius_threshold_low and item[4]<intensity_threshold_high and 
+                                                                    item[4]/item[3]>-.03)]
+        self.particle_centers = particledata_filtered
+        #plot particle data
+        data_to_plot = [item[-1] for item in particledata_filtered]
+        data_to_plot_2 = [item[-2] for item in particledata_filtered]
+        data_to_plot_3 = [item[-1]/item[-2] for item in particledata_filtered]
+
+        
+
+        # Now plot the histogram
+        plt.hist2d(data_to_plot, data_to_plot_2, bins = 100)  # Adjust bins as needed
+
+        plt.title('Histogram of centers[:,-1]')
+        
+
+        plt.show()
+
+        plt.hist(data_to_plot_3, bins = 100)
+        plt.title('intensity/radii')
+        
+
+        plt.show()
+
+
+
 
         return particledata
 
 
-    def save_cuts(self, x_divs = 50, y_divs = 10, z_divs = 5):
+    def save_cuts(self, x_divs = 50, y_divs = 50, z_divs = 50):
         """Call after segmenting and getting particle data
         Saves cuts and displays circles on them, saves to holder then exports"""
         img_size = self.img.shape

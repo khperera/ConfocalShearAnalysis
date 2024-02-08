@@ -7,11 +7,11 @@ from src.utils import tools
 def mayavi_sphere_points3d(particle_data):
     fig = mlab.figure('Mayavi 3D Spheres Points3D', bgcolor=(1, 1, 1), fgcolor=(0, 0, 0))
 
-    x, y, z, r = np.array(particle_data).T
+    x, y, z, r,i = np.array(particle_data).T
     r_scaled = r*2
     # Plot the sphere using Mayavi's points3d
     #mlab.sphere(x=x, y=y, z=z, radius=r, color=(np.random.random(), np.random.random(), np.random.random()), opacity=0.5)
-    mlab.points3d(x, y, z, r_scaled,scale_factor = 2)
+    mlab.points3d(x, y, z, r_scaled,scale_factor = 1)
 
     # Add axes for reference
     mlab.axes()
