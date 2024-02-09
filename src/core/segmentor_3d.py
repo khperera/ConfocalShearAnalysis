@@ -6,6 +6,7 @@ import numpy.typing as npt
 from skimage import filters
 from skimage import img_as_ubyte
 from skimage.transform import rescale as scale1
+from sklearn.neighbors import BallTree
 import skimage as ski
 import matplotlib.pyplot as plt
 from src.utils.particlefinder_nogpu import MultiscaleBlobFinder, OctaveBlobFinder, get_deconv_kernel
@@ -87,27 +88,8 @@ class ImageSegment():
         particledata_filtered =  [item for item in particledata if (item[3] < radius_threshold_high and item[3] > radius_threshold_low and item[4]<intensity_threshold_high and 
                                                                     item[4]/item[3]>-.03)]
         self.particle_centers = particledata_filtered
-        #plot particle data
-        data_to_plot = [item[-1] for item in particledata_filtered]
-        data_to_plot_2 = [item[-2] for item in particledata_filtered]
-        data_to_plot_3 = [item[-1]/item[-2] for item in particledata_filtered]
-
         
-
-        # Now plot the histogram
-        plt.hist2d(data_to_plot, data_to_plot_2, bins = 100)  # Adjust bins as needed
-
-        plt.title('Histogram of centers[:,-1]')
-        
-
-        plt.show()
-
-        plt.hist(data_to_plot_3, bins = 100)
-        plt.title('intensity/radii')
-        
-
-        plt.show()
-
+        self.plot_histograms()
 
 
 
@@ -150,10 +132,36 @@ class ImageSegment():
             circles_in_dim = self.circles_in_dimension(z=pixel_dim)
             holder_xy = holder.ImageHolder(xy_cut,image_type="3D_cut",name= name)
             saver.save_3d_cuts(holder_xy,circles_in_dim)
+        
+        self.plot_histograms()
+        saver.save_matplotlib_plot("Intensity plots")
+
+        
 
     def squish_axis(self, x_squish: float = 0.75, y_squish: float = 0.75, z_squish: float =1):
         self.img = scale1(self.img, (z_squish,x_squish,y_squish), anti_aliasing = True )
 
+
+    def plot_histograms(self):
+        """plot particle data"""
+        data_to_plot = [item[-1] for item in self.particle_centers]
+        data_to_plot_2 = [item[-2] for item in self.particle_centers]
+        data_to_plot_3 = [item[-1]/item[-2] for item in self.particle_centers]
+
+        fig, (ax1,ax2) = plt.subplots(1,2)
+
+
+
+
+        # Now plot the histogram
+        ax1.hist2d(data_to_plot, data_to_plot_2, bins = 100)  # Adjust bins as needed
+
+        ax1.set_title('Radii vs intensity histo')
+        
+
+
+        ax2.hist(data_to_plot_3, bins = 100)
+        ax2.set_title('intensity/radii')  
 
 
 
@@ -208,3 +216,13 @@ class ImageSegment():
             return np.delete(filtered_positions,2, axis = 1)
 
         return positions
+    
+
+    def generate_spacial_data(self):
+
+        spatial_data = np.array([item[:3] for item in self.particle_centers])
+
+        balltree = BallTree(spatial_data, metric = "euclidean")
+
+        
+        

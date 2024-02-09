@@ -101,3 +101,14 @@ class ImageExporter:
         circles = [Circle((x1,x2), r, edgecolor='red', facecolor='none') for x1, x2, r, i in list(particle_data)]
         circle_collection = PatchCollection(circles, match_original=True)
         plt.gca().add_collection(circle_collection)
+
+
+    def save_matplotlib_plot(self, name: str = ""):
+        """saves a premade matplotlib_plot"""
+        save_dir = self.image_save_location+str("plot")+"Image/"
+        self.last_saved_location = save_dir
+
+        save_location = save_dir + name + ".tiff"
+
+        self.make_dir(save_dir)
+        plt.savefig(save_location)
