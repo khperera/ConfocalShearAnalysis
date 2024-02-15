@@ -1,6 +1,7 @@
 """
 Class that is used to segment 3D images. Must feed in unblurred images.
 """
+import math
 import numpy as np
 import numpy.typing as npt
 from skimage import filters
@@ -9,6 +10,7 @@ from skimage.transform import rescale as scale1
 from sklearn.neighbors import BallTree
 import skimage as ski
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from src.utils.particlefinder_nogpu import MultiscaleBlobFinder, OctaveBlobFinder, get_deconv_kernel
 from src.utils import rescale
 from src.core import holder, exporter
@@ -50,8 +52,13 @@ class ImageSegment():
         self.img = image_holder.return_image()
         self.squish_axis()
         self.find_particle_centers()
+        self.sample_spheres(samples = 1000)
+        self.save_cuts(image_type="3D_cut_priorfilter")
+        #particle_centers changes shape after prev Operation
+        self.filter_particles()
+        self.generate_spacial_data()
         dictionary_fit = image_holder.return_fit_dictionary()
-        dictionary_fit["position"] = self.particle_centers
+        dictionary_fit["position"] = np.ndarray.tolist(self.particle_centers)
 
     def return_particledata(self):
         """returns the particle center data"""
@@ -70,7 +77,6 @@ class ImageSegment():
         self.create_kernel()
         finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
         centers = finder(self.img, removeOverlap=False,deconvKernel=self.kernel)
-        print(centers)
         rescale_intensity = True
         if rescale_intensity:
             s = rescale.radius2sigma(centers[:,-2], dim=3)
@@ -81,22 +87,16 @@ class ImageSegment():
             radii1 = centers[:,-2]
     
         particledata = list(zip(centers[:,0], centers[:,1], centers[:,2], radii1, centers[:,-1]))
-        radius_threshold_high = 50
-        radius_threshold_low = 0
-        intensity_threshold_high = -.013
 
-        particledata_filtered =  [item for item in particledata if (item[3] < radius_threshold_high and item[3] > radius_threshold_low and item[4]<intensity_threshold_high and 
-                                                                    item[4]/item[3]>-.03)]
-        self.particle_centers = particledata_filtered
-        
-        self.plot_histograms()
+        self.particle_centers = particledata
+
 
 
 
         return particledata
 
 
-    def save_cuts(self, x_divs = 50, y_divs = 50, z_divs = 50):
+    def save_cuts(self, x_divs = 50, y_divs = 50, z_divs = 50, image_type = "3D_cut"):
         """Call after segmenting and getting particle data
         Saves cuts and displays circles on them, saves to holder then exports"""
         img_size = self.img.shape
@@ -114,7 +114,7 @@ class ImageSegment():
             yz_cut = self.img[:,:,pixel_dim].copy()
             name = "yzcut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(x=pixel_dim)
-            holder_yz = holder.ImageHolder(yz_cut,image_type="3D_cut",name= name)
+            holder_yz = holder.ImageHolder(yz_cut,image_type=image_type,name= name)
             saver.save_3d_cuts(holder_yz,circles_in_dim)
 
         for y_div in range(y_divs):
@@ -122,7 +122,7 @@ class ImageSegment():
             xz_cut = self.img[:,pixel_dim].copy()
             name = "xzcut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(y=pixel_dim)
-            holder_xz = holder.ImageHolder(xz_cut,image_type="3D_cut",name= name)
+            holder_xz = holder.ImageHolder(xz_cut,image_type=image_type,name= name)
             saver.save_3d_cuts(holder_xz,circles_in_dim)
 
         for z_div in range(z_divs):
@@ -130,11 +130,11 @@ class ImageSegment():
             xy_cut = self.img[pixel_dim].copy()
             name = "xycut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(z=pixel_dim)
-            holder_xy = holder.ImageHolder(xy_cut,image_type="3D_cut",name= name)
+            holder_xy = holder.ImageHolder(xy_cut,image_type=image_type,name= name)
             saver.save_3d_cuts(holder_xy,circles_in_dim)
         
         self.plot_histograms()
-        saver.save_matplotlib_plot("Intensity plots")
+        saver.save_matplotlib_plot("Intensity plots_postfilter")
 
         
 
@@ -144,25 +144,52 @@ class ImageSegment():
 
     def plot_histograms(self):
         """plot particle data"""
-        data_to_plot = [item[-1] for item in self.particle_centers]
-        data_to_plot_2 = [item[-2] for item in self.particle_centers]
-        data_to_plot_3 = [item[-1]/item[-2] for item in self.particle_centers]
+        edgeintensity = [item[-3] for item in self.particle_centers]
+        radii = [item[-4] for item in self.particle_centers]
+        ratioedgeradii = [item[-3]/item[-4] for item in self.particle_centers]
+        intensitymean =  [item[-2] for item in self.particle_centers]
+        intensitystd =  [item[-1] for item in self.particle_centers]
 
-        fig, (ax1,ax2) = plt.subplots(1,2)
 
+        fig, axs = plt.subplots(2,3, constrained_layout = True)
+
+        ax1 = axs[0,0]
+        ax2 = axs[0,1]
+        ax3 = axs[1,0]
+        ax4 = axs[1,1]
+        ax5 = axs[0,2]
 
 
 
         # Now plot the histogram
-        ax1.hist2d(data_to_plot, data_to_plot_2, bins = 100)  # Adjust bins as needed
+        ax1.hist2d(radii, edgeintensity, bins = 100, norm= mpl.colors.LogNorm())  # Adjust bins as needed
 
         ax1.set_title('Radii vs intensity histo')
         
 
 
-        ax2.hist(data_to_plot_3, bins = 100)
-        ax2.set_title('intensity/radii')  
+        ax2.hist(ratioedgeradii, bins = 100)
 
+        ax2.set_title('intensity/radii')
+        ax2.set_xlabel("Intensity/Radii")
+        ax3.hist2d(radii, intensitymean, bins = 100, norm= mpl.colors.LogNorm())  # Adjust bins as needed
+        ax3.set_xlabel("Radii")
+        ax3.set_ylabel("MeanIntensity")
+
+
+        ax3.set_title('Intensity vs radii histo')
+
+        ax4.hist2d(radii, intensitystd, bins = 100, norm= mpl.colors.LogNorm())  # Adjust bins as needed
+        ax4.set_xlabel("Radii")
+        ax4.set_ylabel("IntensityDeviation")
+
+        ax4.set_title('Intensitystd vs radii histo')
+
+        ax5.hist2d(intensitymean, intensitystd, bins = 100, norm= mpl.colors.LogNorm())  # Adjust bins as needed
+        ax5.set_xlabel("IntensityMean")
+        ax5.set_ylabel("IntensityStd")
+        ax5.set_title('Intensity Deviation vs Average Intensity')
+        
 
 
 
@@ -217,12 +244,100 @@ class ImageSegment():
 
         return positions
     
-
+###############################################################
+#Filtering data/methodologies
+###################################################
     def generate_spacial_data(self):
+        """Uses balltree to determine neighbors, and circle subfiltering."""
+        spatial_data = self.particle_centers[:,:3]
 
-        spatial_data = np.array([item[:3] for item in self.particle_centers])
+        tree = BallTree(spatial_data, metric = "euclidean")
 
-        balltree = BallTree(spatial_data, metric = "euclidean")
+        for count, particle in enumerate(spatial_data):
+            radius = self.particle_centers[count,3]
+            array_tech = tree.query_radius([particle], r = radius)
+            print(array_tech[0][1:])
+
+
+
+
+
+
+###############################################################
+#Filtering data/methodologies
+###################################################
+    def generate_sampling_space(self, samples: int = 50):
+        """Sub-sample particles to clean up the particles. Takes a list of particles in. Finds them in the image.
+        Returns a sampling space of r,theta,phi.
+            """
+
+        rng = np.random.default_rng()
+        
+        r = np.log10(rng.random(size = samples)*10)
+        theta = rng.random(size = samples)*2*np.pi
+        phi = rng.random(size = samples)*np.pi
+
+        return np.column_stack((r,theta,phi))
+    
+    def sample_spheres(self, samples: int = 50):
+        """Returns the standard deviation and mean of the sphere sampling. 
+        Takes in a list of particles. Returns the particles concat with their avg and stdev intesnity """
+
+        overall_statistics = []
+        for particle in self.particle_centers:
+            x,y,z,r,i = particle
+            sphere_sampling = self.generate_sampling_space(samples= samples)
+            particle_data = []
+            for sampling in sphere_sampling:
+                r_nondim, theta, phi = sampling
+                r_dim = r_nondim*r
+                #finding the shift from center
+                x_s = r_dim*np.cos(theta)*np.sin(phi)
+                y_s = r_dim*np.sin(theta)*np.sin(phi)
+                z_s = r_dim*np.cos(phi)
+
+                #Calculating the access point of the image.
+                z_max, y_max, x_max = self.img.shape
+
+                x_access = max(min(math.trunc(x + x_s),x_max-1),0)
+                y_access = max(min(math.trunc(y + y_s), y_max-1),0)
+                z_access = max(min(math.trunc(z + z_s), z_max-1),0)
+
+                #verification that everything works. REMOVE. Works by turning the sampled area to 0. If see speckles in image, then works.
+                #self.img[z_access,y_access,x_access] = 0
+
+                val = self.img[z_access,y_access,x_access]
+
+                particle_data.append(val)
+            
+            particle_data = np.array(particle_data)
+            intensity_std = np.std(particle_data)
+            intensity_mean = np.mean(particle_data)
+            overall_statistics.append((intensity_mean,intensity_std))
+        self.particle_centers = np.column_stack((self.particle_centers,overall_statistics))
 
         
-        
+        saver = exporter.ImageExporter(config_file_path=self.config_file_path)
+        self.plot_histograms()
+        saver.save_matplotlib_plot("Intensity plots_prefilter")
+
+
+    def filter_particles(self):
+        """Uses various metrics to filter the particles by radius, edge intensity, average intensity, intensity deviation"""
+        radius_threshold_high = 100
+        radius_threshold_low = 0
+        std_dev_thresh_high = 0.23
+        mean_thresh_low = 0.3
+
+        #filtered array is z,y,x, r, i, intensity_means, intensity_std
+
+        filtered_array = self.particle_centers
+
+        #radius filters
+        filtered_array = filtered_array[(filtered_array[:,3]>radius_threshold_low) & (filtered_array[:,3]<radius_threshold_high) ]
+
+        #intensity filter
+        filtered_array = filtered_array[(filtered_array[:,5]>mean_thresh_low) & (filtered_array[:,6]<std_dev_thresh_high) ]
+        self.particle_centers = np.copy(filtered_array)
+
+

@@ -10,6 +10,7 @@ def main():
         image_collection.apply_segmentation()
         image_collection.convert_to_3d()
         image_collection.segment_3d_image()
+        image_collection.save_files()
         particle_data = image_collection.return_3d_particledata()
         image_collection.save_files()
         viewer.mayavi_sphere_points3d(particle_data)
