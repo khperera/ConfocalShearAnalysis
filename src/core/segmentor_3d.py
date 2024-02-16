@@ -9,6 +9,7 @@ from skimage import img_as_ubyte
 from skimage.transform import rescale as scale1
 from sklearn.neighbors import BallTree
 import skimage as ski
+import scipy 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from src.utils.particlefinder_nogpu import MultiscaleBlobFinder, OctaveBlobFinder, get_deconv_kernel
@@ -247,16 +248,81 @@ class ImageSegment():
 ###############################################################
 #Filtering data/methodologies
 ###################################################
-    def generate_spacial_data(self):
+    def generate_entity_data(self):
         """Uses balltree to determine neighbors, and circle subfiltering."""
         spatial_data = self.particle_centers[:,:3]
 
+
         tree = BallTree(spatial_data, metric = "euclidean")
+        ignore_points = []
+        #identifies which particlecs are in what cluser
+        entity_indicator = 0
+        entity_dict = {}
+        #identifies which entity each particle belongs to.
+        particle_dict = {}
+        particle_neighbors = {}
+
+        #parameter that determines how much overlap should be considered 
+        alpha = 0.75
+
+        max_radius = np.max(self.particle_centers[:,3])
+
+        #implement a recursive algorithm. Need to find all particles in a entity or neighbor.
+        #three actions, add particle to remove list, add particle to an entity, add particle as a neighbor.
+        #start by seeing if a particle has been identified before. If so, continue.
+        #Check all nearest neighbors w/in radius of a particle. 
+        #if neighbor is fully within, add to ignorelist
+        #if particle is in entity range, add it to current entity. Then activate recursive entity track.
+            #See if that subparticle has neighbors and entities. Activate recursive. The break condition is if all particles seen.
+        #If particle is in neighbor range, add to system neighbor.
+
+        #at end, algorithm to see the neighboring entities.
+
+
+
+
 
         for count, particle in enumerate(spatial_data):
+
+
+
+            #Check to see if we have identified the particle already. 
+            current_entity = entity_indicator
+            if count not in particle_dict:
+                particle_dict[count] = current_entity
+                entity_dict[current_entity] = [count]
+                entity_indicator = entity_indicator + 1
+            else:
+                continue
+
             radius = self.particle_centers[count,3]
-            array_tech = tree.query_radius([particle], r = radius)
-            print(array_tech[0][1:])
+            coordinates = self.particle_centers[count,:3]
+            #QUERSY RADIUS should be max system radius, realistically. Then you'll always know the neighbor of something
+            array_tech = tree.query_radius([particle], r = max_radius*2)
+
+            
+            for otherparticle in array_tech[0][1:]:
+
+                radius_2 = self.particle_centers[otherparticle,3]
+                coordinates_2 = self.particle_centers[otherparticle,:3]
+                distance = scipy.spatial.distance.euclidean(coordinates, coordinates_2) 
+
+                #test to see if particle is fully contained within other particle. Delete if so.
+                if radius >= radius_2 + distance:
+                    ignore_points.append(otherparticle)
+
+                    continue
+                              
+
+                #test to see if particles are within entity distance using parameter alpha.
+                if radius >= distance - radius_2*alpha:
+                    entity_dict[current_entity].append(otherparticle)
+
+    def indentify_entities
+
+
+
+
 
 
 
