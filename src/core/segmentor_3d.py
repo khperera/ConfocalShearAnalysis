@@ -286,7 +286,7 @@ class ImageSegment():
 
 
 
-            #Check to see if we have identified the particle already. 
+            #Check to see if we have identified the particle already.  this can remain. Other stuff must go
             current_entity = entity_indicator
             if count not in particle_dict:
                 particle_dict[count] = current_entity
@@ -318,7 +318,41 @@ class ImageSegment():
                 if radius >= distance - radius_2*alpha:
                     entity_dict[current_entity].append(otherparticle)
 
-    def indentify_entities
+    def identify_entities(self, particle, entity_number):
+        #make particle dict global
+        if particle in particle_dict:
+            return
+        else:
+            particle_dict[particle] = []
+        
+        #balltree must be made global
+        radius = self.particle_centers[count,3]
+        coordinates = self.particle_centers[count,:3]
+        array_tech = tree.query_radius([particle], r = max_radius*2)
+
+        for particle1 in array_tech[0][1:]:
+            radius_2 = self.particle_centers[otherparticle,3]
+            coordinates_2 = self.particle_centers[otherparticle,:3]
+            distance = scipy.spatial.distance.euclidean(coordinates, coordinates_2) 
+
+            #check to see if fully contained, then delete if true.
+            if (radius > radius_2+distance):
+                ignore_list.append(particle1)
+                continue
+
+            if (radius >= distance - radius_2*alpha):
+                entitydict[entity_number].append(particle1)
+                self.identify_entities(particle=particle1, entity_number=entity_number)
+                continue
+
+            if (beta* d > radius + radius_2):
+                particle_dict[particle].append[particle1]
+                continue
+   
+            
+
+
+
 
 
 
