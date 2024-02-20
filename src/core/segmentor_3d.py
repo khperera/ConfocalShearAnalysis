@@ -53,6 +53,8 @@ class ImageSegment():
         #particledata_storage
         #stores the neighbors of each particle
         self.particle_dict = {}
+        #stores the entity of each particle
+        self.particle_entity = {}
         #entitystorage, stores the particles contained by each entity.
         self.entity_dict = {}
         #the ignore list. Don't consider these particles or draw them.
@@ -78,6 +80,7 @@ class ImageSegment():
         #particle_centers changes shape after prev Operation
         self.filter_particles()
         self.generate_entity_data()
+        self.find_entity_neighbors()
         dictionary_fit = image_holder.return_fit_dictionary()
         dictionary_fit["position"] = np.ndarray.tolist(self.particle_centers)
 
@@ -165,11 +168,15 @@ class ImageSegment():
 
     def plot_histograms(self):
         """plot particle data"""
-        edgeintensity = [item[-3] for item in self.particle_centers]
-        radii = [item[-4] for item in self.particle_centers]
-        ratioedgeradii = [item[-3]/item[-4] for item in self.particle_centers]
-        intensitymean =  [item[-2] for item in self.particle_centers]
-        intensitystd =  [item[-1] for item in self.particle_centers]
+        all_indicies = np.arange(len(self.particle_centers))
+        rows_to_keep = np.setdiff1d(all_indicies,self.ignore_list)
+
+        filtered_particle_centers = self.particle_centers[rows_to_keep]
+        edgeintensity = [item[-3] for item in filtered_particle_centers]
+        radii = [item[-4] for item in filtered_particle_centers]
+        ratioedgeradii = [item[-3]/item[-4] for item in filtered_particle_centers]
+        intensitymean =  [item[-2] for item in filtered_particle_centers]
+        intensitystd =  [item[-1] for item in filtered_particle_centers]
 
 
         fig, axs = plt.subplots(2,3, constrained_layout = True)
@@ -306,14 +313,16 @@ class ImageSegment():
             return
         else:
             self.particle_dict[particle] = []
+            self.particle_entity[particle] = entity_number
         
-        if not self.entity_dict:
+        if entity_number not in self.entity_dict:
             self.entity_dict[entity_number] = []
-        print(particle)
+            
+        #print(particle)
         #balltree must be made global
         radius = self.particle_centers[particle,3]
         coordinates = self.particle_centers[particle,:3]
-        array_tech = self.balltree.query_radius(coordinates, r = self.max_radius*2)
+        array_tech = self.balltree.query_radius(coordinates.reshape(1,-1), r = self.max_radius*2)
 
         for particle1 in array_tech[0][1:]:
             radius_2 = self.particle_centers[particle1,3]
@@ -336,6 +345,23 @@ class ImageSegment():
    
             
 
+    def find_entity_neighbors(self):
+        """Iterates through all the entities and find their neighbors"""
+        for entity in self.entity_dict:
+            
+            unique_neighbors = []
+            for particle in self.entity_dict[entity]:
+                
+                neighbors = self.particle_dict[particle]
+
+                for neighbor in neighbors:
+                    neighboring_entity = self.particle_entity[neighbor]
+
+                    if not ((neighboring_entity in unique_neighbors) or (neighboring_entity is entity)):
+                        unique_neighbors.append(neighboring_entity)
+            
+            self.entity_neighbors[entity] = unique_neighbors
+            print(entity, unique_neighbors)
 
 
 
