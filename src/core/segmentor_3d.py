@@ -41,6 +41,26 @@ class ImageSegment():
         self.particle_centers = None
         self.kernel = None
         self.config_file_path= config_file_path
+
+
+        #image segmentation variables.
+        self.alpha = 0.75
+        self.beta = 0.1
+        self.max_radius = 3
+        self.balltree = None
+        self.entity_indicator = 0
+
+        #particledata_storage
+        #stores the neighbors of each particle
+        self.particle_dict = {}
+        #entitystorage, stores the particles contained by each entity.
+        self.entity_dict = {}
+        #the ignore list. Don't consider these particles or draw them.
+        self.ignore_list = []
+        #entity_neighborlist
+        self.entity_neighbors = {}
+
+
 ####################################################################################################
 #main function. callable by other functions, classes
 
@@ -57,7 +77,7 @@ class ImageSegment():
         self.save_cuts(image_type="3D_cut_priorfilter")
         #particle_centers changes shape after prev Operation
         self.filter_particles()
-        self.generate_spacial_data()
+        self.generate_entity_data()
         dictionary_fit = image_holder.return_fit_dictionary()
         dictionary_fit["position"] = np.ndarray.tolist(self.particle_centers)
 
@@ -253,19 +273,9 @@ class ImageSegment():
         spatial_data = self.particle_centers[:,:3]
 
 
-        tree = BallTree(spatial_data, metric = "euclidean")
-        ignore_points = []
-        #identifies which particlecs are in what cluser
-        entity_indicator = 0
-        entity_dict = {}
-        #identifies which entity each particle belongs to.
-        particle_dict = {}
-        particle_neighbors = {}
+        self.balltree = BallTree(spatial_data, metric = "euclidean")
 
-        #parameter that determines how much overlap should be considered 
-        alpha = 0.75
-
-        max_radius = np.max(self.particle_centers[:,3])
+        self.max_radius = np.max(self.particle_centers[:,3])
 
         #implement a recursive algorithm. Need to find all particles in a entity or neighbor.
         #three actions, add particle to remove list, add particle to an entity, add particle as a neighbor.
@@ -278,75 +288,50 @@ class ImageSegment():
 
         #at end, algorithm to see the neighboring entities.
 
-
-
-
-
         for count, particle in enumerate(spatial_data):
 
-
-
             #Check to see if we have identified the particle already.  this can remain. Other stuff must go
-            current_entity = entity_indicator
-            if count not in particle_dict:
-                particle_dict[count] = current_entity
-                entity_dict[current_entity] = [count]
-                entity_indicator = entity_indicator + 1
-            else:
+            current_entity = self.entity_indicator
+            if count in self.particle_dict:
                 continue
+   
+            self.identify_entities(particle=count, entity_number=current_entity)
+            self.entity_indicator = self.entity_indicator + 1
 
-            radius = self.particle_centers[count,3]
-            coordinates = self.particle_centers[count,:3]
-            #QUERSY RADIUS should be max system radius, realistically. Then you'll always know the neighbor of something
-            array_tech = tree.query_radius([particle], r = max_radius*2)
 
-            
-            for otherparticle in array_tech[0][1:]:
-
-                radius_2 = self.particle_centers[otherparticle,3]
-                coordinates_2 = self.particle_centers[otherparticle,:3]
-                distance = scipy.spatial.distance.euclidean(coordinates, coordinates_2) 
-
-                #test to see if particle is fully contained within other particle. Delete if so.
-                if radius >= radius_2 + distance:
-                    ignore_points.append(otherparticle)
-
-                    continue
-                              
-
-                #test to see if particles are within entity distance using parameter alpha.
-                if radius >= distance - radius_2*alpha:
-                    entity_dict[current_entity].append(otherparticle)
-
-    def identify_entities(self, particle, entity_number):
+    def identify_entities(self, particle = 0, entity_number = 0):
+        """A recursive function that identifies particles"""
         #make particle dict global
-        if particle in particle_dict:
+        if particle in self.particle_dict:
             return
         else:
-            particle_dict[particle] = []
+            self.particle_dict[particle] = []
         
+        if not self.entity_dict:
+            self.entity_dict[entity_number] = []
+        print(particle)
         #balltree must be made global
-        radius = self.particle_centers[count,3]
-        coordinates = self.particle_centers[count,:3]
-        array_tech = tree.query_radius([particle], r = max_radius*2)
+        radius = self.particle_centers[particle,3]
+        coordinates = self.particle_centers[particle,:3]
+        array_tech = self.balltree.query_radius(coordinates, r = self.max_radius*2)
 
         for particle1 in array_tech[0][1:]:
-            radius_2 = self.particle_centers[otherparticle,3]
-            coordinates_2 = self.particle_centers[otherparticle,:3]
+            radius_2 = self.particle_centers[particle1,3]
+            coordinates_2 = self.particle_centers[particle1,:3]
             distance = scipy.spatial.distance.euclidean(coordinates, coordinates_2) 
 
             #check to see if fully contained, then delete if true.
             if (radius > radius_2+distance):
-                ignore_list.append(particle1)
+                self.ignore_list.append(particle1)
                 continue
 
-            if (radius >= distance - radius_2*alpha):
-                entitydict[entity_number].append(particle1)
+            if (radius >= distance - radius_2*self.alpha):
+                self.entity_dict[entity_number].append(particle1)
                 self.identify_entities(particle=particle1, entity_number=entity_number)
                 continue
 
-            if (beta* d > radius + radius_2):
-                particle_dict[particle].append[particle1]
+            if (self.beta * distance > radius + radius_2):
+                self.particle_dict[particle].append(particle1)
                 continue
    
             
