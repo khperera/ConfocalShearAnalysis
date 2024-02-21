@@ -253,25 +253,26 @@ class ImageSegment():
 
         if x is not None:
             
-            x_values = positions[:,0]
-            r_values = positions[:, 3]
+            x_values = positions[:,1]
+            r_values = positions[:, 4]
             filtered_positions = positions[np.abs(x_values-x) - r_values <= 0]
-            filtered_positions[:,3] = np.sqrt(filtered_positions[:,3]**2 - (filtered_positions[:,0]-x)**2)
+            #pythagorean theorem
+            filtered_positions[:,4] = np.sqrt(filtered_positions[:,4]**2 - (filtered_positions[:,1]-x)**2)
             
             return np.delete(filtered_positions,0, axis = 1)
         if y is not None:
             
-            y_values = positions[:,1]
+            y_values = positions[:,2]
             r_values = positions[:, 3]
             filtered_positions = positions[np.abs(y_values-y) - r_values <= 0]
-            filtered_positions[:,3] = np.sqrt(filtered_positions[:,3]**2 - (filtered_positions[:,1]-y)**2)
+            filtered_positions[:,4] = np.sqrt(filtered_positions[:,4]**2 - (filtered_positions[:,2]-y)**2)
             return np.delete(filtered_positions,1, axis = 1)
         if z is not None:
             
-            z_values = positions[:,2]
-            r_values = positions[:, 3]
+            z_values = positions[:,3]
+            r_values = positions[:, 4]
             filtered_positions = positions[np.abs(z_values-z) - r_values <= 0]
-            filtered_positions[:,3] = np.sqrt(filtered_positions[:,3]**2 - (filtered_positions[:,2]-z)**2)
+            filtered_positions[:,4] = np.sqrt(filtered_positions[:,4]**2 - (filtered_positions[:,3]-z)**2)
             return np.delete(filtered_positions,2, axis = 1)
 
         return positions
@@ -281,12 +282,12 @@ class ImageSegment():
 ###################################################
     def generate_entity_data(self):
         """Uses balltree to determine neighbors, and circle subfiltering."""
-        spatial_data = self.particle_centers[:,:3]
+        spatial_data = self.particle_centers[:,:4]
 
 
         self.balltree = BallTree(spatial_data, metric = "euclidean")
 
-        self.max_radius = np.max(self.particle_centers[:,3])
+        self.max_radius = np.max(self.particle_centers[:,4])
 
         #implement a recursive algorithm. Need to find all particles in a entity or neighbor.
         #three actions, add particle to remove list, add particle to an entity, add particle as a neighbor.
@@ -299,8 +300,8 @@ class ImageSegment():
 
         #at end, algorithm to see the neighboring entities.
 
-        for count, particle in enumerate(spatial_data):
-
+        for particle in spatial_data:
+            count, x, y, z = particle
             #Check to see if we have identified the particle already.  this can remain. Other stuff must go
             current_entity = self.entity_indicator
             if count in self.particle_dict:
@@ -324,22 +325,25 @@ class ImageSegment():
             
         #print(particle)
         #balltree must be made global
-        radius = self.particle_centers[particle,3]
-        coordinates = self.particle_centers[particle,:3]
+        radius = self.particle_centers[particle,4]
+        coordinates = self.particle_centers[particle,1:4]
         array_tech = self.balltree.query_radius(coordinates.reshape(1,-1), r = self.max_radius*2)
 
-        for particle1 in array_tech[0][1:]:
+        for row in array_tech[0][1:]:
+            
             radius_2 = self.particle_centers[particle1,3]
             coordinates_2 = self.particle_centers[particle1,:3]
             distance = scipy.spatial.distance.euclidean(coordinates, coordinates_2) 
+            particle_index = self.particle_centers[particle1,0]
 
             #check to see if fully contained, then delete if true.
             if (radius > radius_2+distance):
-                self.ignore_list.append(particle1)
+                
+                self.ignore_list.append(particle_index)
                 continue
 
             if (radius >= distance - radius_2*self.alpha):
-                self.entity_dict[entity_number].append(particle1)
+                self.entity_dict[entity_number].append(particle_index)
                 self.identify_entities(particle=particle1, entity_number=entity_number)
                 continue
 
@@ -403,7 +407,7 @@ class ImageSegment():
 
         overall_statistics = []
         for particle in self.particle_centers:
-            x,y,z,r,i = particle
+            index,x,y,z,r,i = particle
             sphere_sampling = self.generate_sampling_space(samples= samples)
             particle_data = []
             for sampling in sphere_sampling:
@@ -452,10 +456,10 @@ class ImageSegment():
         filtered_array = self.particle_centers
 
         #radius filters
-        filtered_array = filtered_array[(filtered_array[:,3]>radius_threshold_low) & (filtered_array[:,3]<radius_threshold_high) ]
+        filtered_array = filtered_array[(filtered_array[:,4]>radius_threshold_low) & (filtered_array[:,4]<radius_threshold_high) ]
 
         #intensity filter
-        filtered_array = filtered_array[(filtered_array[:,5]>mean_thresh_low) & (filtered_array[:,6]<std_dev_thresh_high) ]
+        filtered_array = filtered_array[(filtered_array[:,6]>mean_thresh_low) & (filtered_array[:,7]<std_dev_thresh_high) ]
         self.particle_centers = np.copy(filtered_array)
 
 

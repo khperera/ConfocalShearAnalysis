@@ -98,7 +98,7 @@ class ImageExporter:
         
         
     def draw_circles(self, particle_data: npt.ArrayLike = None) -> None:
-        circles = [Circle((x1,x2), r, edgecolor='red', facecolor='none') for x1, x2, r, i, i_mean, i_std in list(particle_data)]
+        circles = [Circle((x1,x2), r, edgecolor='red', facecolor='none') for index,x1, x2, r, i, i_mean, i_std in list(particle_data)]
         circle_collection = PatchCollection(circles, match_original=True)
         plt.gca().add_collection(circle_collection)
 
