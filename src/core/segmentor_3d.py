@@ -109,8 +109,12 @@ class ImageSegment():
             radii1 = rescale.global_rescale_intensity(s, bonds, dists, brights1)
         else:
             radii1 = centers[:,-2]
-    
-        particledata = list(zip(centers[:,0], centers[:,1], centers[:,2], radii1, centers[:,-1]))
+        # Assuming centers is a NumPy array
+        length = len(centers[:,0])  # Get the length of the first column of centers
+
+        # Generate an array of indices from 0 to length-1
+        index_array = np.arange(length)
+        particledata = list(zip(index_array, centers[:,0], centers[:,1], centers[:,2], radii1, centers[:,-1]))
 
         self.particle_centers = particledata
 
@@ -347,6 +351,7 @@ class ImageSegment():
 
     def find_entity_neighbors(self):
         """Iterates through all the entities and find their neighbors"""
+
         for entity in self.entity_dict:
             
             unique_neighbors = []
@@ -361,7 +366,9 @@ class ImageSegment():
                         unique_neighbors.append(neighboring_entity)
             
             self.entity_neighbors[entity] = unique_neighbors
-            print(entity, unique_neighbors)
+            
+        
+
 
 
 
