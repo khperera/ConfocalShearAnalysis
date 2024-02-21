@@ -62,6 +62,8 @@ class ImageSegment():
         #entity_neighborlist
         self.entity_neighbors = {}
 
+        #input particle list. List particles to be colored when drawn.
+        self.particle_in = []
 
 ####################################################################################################
 #main function. callable by other functions, classes
@@ -81,6 +83,7 @@ class ImageSegment():
         self.filter_particles()
         self.generate_entity_data()
         self.find_entity_neighbors()
+        self.filter_particles_ignorelist()
         dictionary_fit = image_holder.return_fit_dictionary()
         dictionary_fit["position"] = np.ndarray.tolist(self.particle_centers)
 
@@ -142,8 +145,9 @@ class ImageSegment():
             yz_cut = self.img[:,:,pixel_dim].copy()
             name = "yzcut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(x=pixel_dim)
+            print(circles_in_dim.shape, "shapein")
             holder_yz = holder.ImageHolder(yz_cut,image_type=image_type,name= name)
-            saver.save_3d_cuts(holder_yz,circles_in_dim)
+            saver.save_3d_cuts(holder_yz,circles_in_dim, [self.entity_neighbors,self.particle_entity])
 
         for y_div in range(y_divs):
             pixel_dim = int(y_div*y_size)
@@ -151,7 +155,7 @@ class ImageSegment():
             name = "xzcut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(y=pixel_dim)
             holder_xz = holder.ImageHolder(xz_cut,image_type=image_type,name= name)
-            saver.save_3d_cuts(holder_xz,circles_in_dim)
+            saver.save_3d_cuts(holder_xz,circles_in_dim, [self.entity_neighbors,self.particle_entity])
 
         for z_div in range(z_divs):
             pixel_dim = int(z_div*z_size)
@@ -159,7 +163,7 @@ class ImageSegment():
             name = "xycut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(z=pixel_dim)
             holder_xy = holder.ImageHolder(xy_cut,image_type=image_type,name= name)
-            saver.save_3d_cuts(holder_xy,circles_in_dim)
+            saver.save_3d_cuts(holder_xy,circles_in_dim, [self.entity_neighbors,self.particle_entity])
         
         self.plot_histograms()
         saver.save_matplotlib_plot("Intensity plots_postfilter")
@@ -250,7 +254,7 @@ class ImageSegment():
         """Returns the list of circles that are in the dimension and 
         gives effect radius at that plane"""
         positions = np.array(self.particle_centers)
-
+        print(self.particle_centers.shape, "shape")
         if x is not None:
             
             x_values = positions[:,1]
@@ -259,21 +263,21 @@ class ImageSegment():
             #pythagorean theorem
             filtered_positions[:,4] = np.sqrt(filtered_positions[:,4]**2 - (filtered_positions[:,1]-x)**2)
             
-            return np.delete(filtered_positions,0, axis = 1)
+            return np.delete(filtered_positions,1, axis = 1)
         if y is not None:
             
             y_values = positions[:,2]
-            r_values = positions[:, 3]
+            r_values = positions[:, 4]
             filtered_positions = positions[np.abs(y_values-y) - r_values <= 0]
             filtered_positions[:,4] = np.sqrt(filtered_positions[:,4]**2 - (filtered_positions[:,2]-y)**2)
-            return np.delete(filtered_positions,1, axis = 1)
+            return np.delete(filtered_positions,2, axis = 1)
         if z is not None:
             
             z_values = positions[:,3]
             r_values = positions[:, 4]
             filtered_positions = positions[np.abs(z_values-z) - r_values <= 0]
             filtered_positions[:,4] = np.sqrt(filtered_positions[:,4]**2 - (filtered_positions[:,3]-z)**2)
-            return np.delete(filtered_positions,2, axis = 1)
+            return np.delete(filtered_positions,3, axis = 1)
 
         return positions
     
@@ -282,10 +286,10 @@ class ImageSegment():
 ###################################################
     def generate_entity_data(self):
         """Uses balltree to determine neighbors, and circle subfiltering."""
-        spatial_data = self.particle_centers[:,:4]
+        spatial_data = self.particle_centers[:,0:4]
 
 
-        self.balltree = BallTree(spatial_data, metric = "euclidean")
+        self.balltree = BallTree(spatial_data[:,1:4], metric = "euclidean")
 
         self.max_radius = np.max(self.particle_centers[:,4])
 
@@ -325,16 +329,20 @@ class ImageSegment():
             
         #print(particle)
         #balltree must be made global
-        radius = self.particle_centers[particle,4]
-        coordinates = self.particle_centers[particle,1:4]
-        array_tech = self.balltree.query_radius(coordinates.reshape(1,-1), r = self.max_radius*2)
+        rows_with_value = self.particle_centers[self.particle_centers[:, 0] == particle]   
+        radius = rows_with_value[0,4]
+        coordinates = rows_with_value[0,1:4].reshape(1,-1)
+        #print(radius, coordinates)
+        array_tech = self.balltree.query_radius(coordinates, r = self.max_radius*2)
 
         for row in array_tech[0][1:]:
             
-            radius_2 = self.particle_centers[particle1,3]
-            coordinates_2 = self.particle_centers[particle1,:3]
-            distance = scipy.spatial.distance.euclidean(coordinates, coordinates_2) 
-            particle_index = self.particle_centers[particle1,0]
+            
+            radius_2 = self.particle_centers[row,4]
+            coordinates_2 = self.particle_centers[row,1:4]
+            #print(coordinates_2, radius_2)
+            distance = scipy.spatial.distance.euclidean(coordinates.flatten(), coordinates_2) 
+            particle_index = self.particle_centers[row,0]
 
             #check to see if fully contained, then delete if true.
             if (radius > radius_2+distance):
@@ -344,11 +352,11 @@ class ImageSegment():
 
             if (radius >= distance - radius_2*self.alpha):
                 self.entity_dict[entity_number].append(particle_index)
-                self.identify_entities(particle=particle1, entity_number=entity_number)
+                self.identify_entities(particle=particle_index, entity_number=entity_number)
                 continue
 
             if (self.beta * distance > radius + radius_2):
-                self.particle_dict[particle].append(particle1)
+                self.particle_dict[particle].append(particle_index)
                 continue
    
             
@@ -462,4 +470,13 @@ class ImageSegment():
         filtered_array = filtered_array[(filtered_array[:,6]>mean_thresh_low) & (filtered_array[:,7]<std_dev_thresh_high) ]
         self.particle_centers = np.copy(filtered_array)
 
+    def filter_particles_ignorelist(self):
+        """Filters particles based on the ignorelist generated by by the nearest neighbor analysis"""
+
+        # Assuming self.particle_centers is your 2D array and rows_to_remove is the list of row indices to remove
+        values_to_remove = self.ignore_list  # Example indices of rows to remove
+
+        mask = ~np.isin(self.particle_centers[:, 0], values_to_remove)
+
+        self.particle_centers = self.particle_centers[mask]
 

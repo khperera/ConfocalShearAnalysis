@@ -72,7 +72,7 @@ class ImageExporter:
         io.imsave(save_location,img)
 
 
-    def save_3d_cuts(self,  image_holder: holder.ImageHolder = None, circle_data: npt.ArrayLike = None):
+    def save_3d_cuts(self,  image_holder: holder.ImageHolder = None, circle_data: npt.ArrayLike = None, classification_data: npt.ArrayLike = None):
         """Saves image holder that represent 3D cuts and draws circles on them.
           Assumes scikit images"""
         title = image_holder.return_image_info()["name"]
@@ -80,7 +80,7 @@ class ImageExporter:
         plt.clf()
         print(img.shape)
         fig1 = plt.imshow(img, cmap='gray')
-        self.draw_circles(circle_data)
+        self.draw_circles(circle_data,classification_data)
 
 
         #save directory:
@@ -97,10 +97,32 @@ class ImageExporter:
         plt.close()
         
         
-    def draw_circles(self, particle_data: npt.ArrayLike = None) -> None:
-        circles = [Circle((x1,x2), r, edgecolor='red', facecolor='none') for index,x1, x2, r, i, i_mean, i_std in list(particle_data)]
-        circle_collection = PatchCollection(circles, match_original=True)
-        plt.gca().add_collection(circle_collection)
+    def draw_circles(self, particle_data: npt.ArrayLike = None, classification_data: npt.ArrayLike = None) -> None:
+
+        #we can make dashed lines for user input data versus fit data. The color will indicate the entity. So each entity will
+        #have a unique color.
+
+        entity_neighbors, particle_entity = classification_data
+        i = 1
+        if not particle_entity:
+            circles = [Circle((x1,x2), r, edgecolor='red', facecolor='none') for index, x1, x2, r, i, i_mean, i_std in list(particle_data)]
+            circle_collection = PatchCollection(circles, match_original=True)
+            plt.gca().add_collection(circle_collection)
+        else:
+            for index, x1, x2, r, i, i_mean, i_std in list(particle_data):
+                
+            
+
+
+
+
+
+
+
+
+
+
+
 
 
     def save_matplotlib_plot(self, name: str = ""):
