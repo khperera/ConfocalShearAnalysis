@@ -46,7 +46,7 @@ class ImageSegment():
 
         #image segmentation variables.
         self.alpha = 0.75
-        self.beta = 0.2
+        self.beta = 1.2
         self.max_radius = 3
         self.balltree = None
         self.entity_indicator = 0
@@ -375,7 +375,7 @@ class ImageSegment():
                 self.identify_entities(particle=particle_index, entity_number=entity_number)
                 continue
 
-            if (self.beta * distance > radius + radius_2):
+            if ((self.beta*(radius + radius_2)) > (distance)):
                 self.particle_dict[particle].append(particle_index)
                 continue
    
@@ -394,10 +394,11 @@ class ImageSegment():
                 for neighbor in neighbors:
                     neighboring_entity = self.particle_entity[neighbor]
 
-                    if not ((neighboring_entity in unique_neighbors) or (neighboring_entity is entity)):
+                    if ((not neighboring_entity in unique_neighbors) and (not neighboring_entity is entity)):
                         unique_neighbors.append(neighboring_entity)
             
             self.entity_neighbors[entity] = unique_neighbors
+            print(len(unique_neighbors))
             
         
 

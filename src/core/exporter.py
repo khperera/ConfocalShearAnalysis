@@ -117,12 +117,16 @@ class ImageExporter:
             
             colormap = cm.plasma 
             max_value = 5
+            neighbor_image = False               
+
             for entity in entity_neighbors:
-                
-                
                 if not entity in self.entity_color_dict:
-                    #neighbor_normalized = min(len(entity_neighbors[entity])/max_value,1)
-                    self.entity_color_dict[entity] = (random.random(),random.random(),random.random())
+                    if neighbor_image:
+                        neighbor_normalized = min(len(entity_neighbors[entity])/max_value,1)
+                        self.entity_color_dict[entity] = colormap(neighbor_normalized)
+ 
+                    else:
+                        self.entity_color_dict[entity] = (random.random(),random.random(),random.random())
 
 
 

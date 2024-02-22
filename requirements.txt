@@ -9,3 +9,4 @@ numexpr >= 1.0.0
 numba >= 0.0.1
 matplotlib >= 0.0.0
 mayavi >= 0.0.0
+scikit-image >= 0.0.0
