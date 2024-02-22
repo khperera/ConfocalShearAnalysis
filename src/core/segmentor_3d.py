@@ -41,11 +41,12 @@ class ImageSegment():
         self.particle_centers = None
         self.kernel = None
         self.config_file_path= config_file_path
+        self.particle_addition_save_location = config["3DParticleData"]
 
 
         #image segmentation variables.
         self.alpha = 0.75
-        self.beta = 0.1
+        self.beta = 0.2
         self.max_radius = 3
         self.balltree = None
         self.entity_indicator = 0
@@ -77,6 +78,7 @@ class ImageSegment():
         self.img = image_holder.return_image()
         self.squish_axis()
         self.find_particle_centers()
+        self.load_particle_data()
         self.sample_spheres(samples = 1000)
         self.save_cuts(image_type="3D_cut_priorfilter")
         #particle_centers changes shape after prev Operation
@@ -90,6 +92,21 @@ class ImageSegment():
     def return_particledata(self):
         """returns the particle center data"""
         return self.particle_centers
+    
+    def load_particle_data(self):
+        """Loads particle data from CSV. In form, x, y, z, r, i """
+        input_array = np.genfromtxt(self.particle_addition_save_location, delimiter=",")
+        #print(input_array)
+        #print(input_array.shape)
+        rows = input_array.shape[0]
+        max_index = np.array(self.particle_centers).max(axis=0)[0]
+        index_new = np.arange(max_index+1, max_index+1+rows)
+        self.particle_in = index_new
+        new_particle_data = np.column_stack((index_new,input_array))
+        #print(new_particle_data, new_particle_data.shape)
+        self.particle_centers = np.concatenate((self.particle_centers, new_particle_data), axis = 0)
+
+        
 
 ####################################################################################################
 #filters
@@ -145,9 +162,9 @@ class ImageSegment():
             yz_cut = self.img[:,:,pixel_dim].copy()
             name = "yzcut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(x=pixel_dim)
-            print(circles_in_dim.shape, "shapein")
+            #print(circles_in_dim.shape, "shapein")
             holder_yz = holder.ImageHolder(yz_cut,image_type=image_type,name= name)
-            saver.save_3d_cuts(holder_yz,circles_in_dim, [self.entity_neighbors,self.particle_entity])
+            saver.save_3d_cuts(holder_yz,circles_in_dim, [self.entity_neighbors,self.particle_entity,self.particle_in])
 
         for y_div in range(y_divs):
             pixel_dim = int(y_div*y_size)
@@ -155,7 +172,7 @@ class ImageSegment():
             name = "xzcut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(y=pixel_dim)
             holder_xz = holder.ImageHolder(xz_cut,image_type=image_type,name= name)
-            saver.save_3d_cuts(holder_xz,circles_in_dim, [self.entity_neighbors,self.particle_entity])
+            saver.save_3d_cuts(holder_xz,circles_in_dim, [self.entity_neighbors,self.particle_entity,self.particle_in])
 
         for z_div in range(z_divs):
             pixel_dim = int(z_div*z_size)
@@ -163,7 +180,7 @@ class ImageSegment():
             name = "xycut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(z=pixel_dim)
             holder_xy = holder.ImageHolder(xy_cut,image_type=image_type,name= name)
-            saver.save_3d_cuts(holder_xy,circles_in_dim, [self.entity_neighbors,self.particle_entity])
+            saver.save_3d_cuts(holder_xy,circles_in_dim, [self.entity_neighbors,self.particle_entity,self.particle_in])
         
         self.plot_histograms()
         saver.save_matplotlib_plot("Intensity plots_postfilter")
@@ -284,6 +301,9 @@ class ImageSegment():
 ###############################################################
 #Filtering data/methodologies
 ###################################################
+
+
+
     def generate_entity_data(self):
         """Uses balltree to determine neighbors, and circle subfiltering."""
         spatial_data = self.particle_centers[:,0:4]
@@ -479,4 +499,5 @@ class ImageSegment():
         mask = ~np.isin(self.particle_centers[:, 0], values_to_remove)
 
         self.particle_centers = self.particle_centers[mask]
+
 

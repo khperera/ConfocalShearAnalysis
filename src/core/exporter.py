@@ -3,15 +3,18 @@ Module for developing a class to export files to user specifed location
 """
 import os
 import json
+import csv
 import cv2
 import numpy.typing as npt
 from skimage import io,color
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.collections import PatchCollection
+from matplotlib.colors import Normalize
+import matplotlib.cm as cm
 from src.core import holder
 from src.utils import tools
-
+import random
 
 class ImageExporter:
     """class for saving image from an image holder to a location."""
@@ -19,7 +22,9 @@ class ImageExporter:
 
         config = tools.load_config(config_file_path)
         self.image_save_location = config["DataSaveLocation"]
+
         self.last_saved_location = ""
+        self.entity_color_dict = {}
 
     def save_image(self, image_holder: holder.ImageHolder) -> npt.ArrayLike:
         """saves an image to folder given an imageholder. 
@@ -102,14 +107,48 @@ class ImageExporter:
         #we can make dashed lines for user input data versus fit data. The color will indicate the entity. So each entity will
         #have a unique color.
 
-        entity_neighbors, particle_entity = classification_data
-        i = 1
-        if not particle_entity:
+        entity_neighbors, particle_entity, particle_input = classification_data
+        i = False
+        if i:
             circles = [Circle((x1,x2), r, edgecolor='red', facecolor='none') for index, x1, x2, r, i, i_mean, i_std in list(particle_data)]
             circle_collection = PatchCollection(circles, match_original=True)
             plt.gca().add_collection(circle_collection)
         else:
+            
+            colormap = cm.plasma 
+            max_value = 5
+            for entity in entity_neighbors:
+                
+                
+                if not entity in self.entity_color_dict:
+                    #neighbor_normalized = min(len(entity_neighbors[entity])/max_value,1)
+                    self.entity_color_dict[entity] = (random.random(),random.random(),random.random())
+
+
+
+
+            circle_col = []
             for index, x1, x2, r, i, i_mean, i_std in list(particle_data):
+                if index in particle_input:
+                    facecolor = "green"
+                    alpha = 0.5
+                else:
+                    facecolor = "none"
+                    alpha = 1
+                
+                if index in particle_entity:
+                    entity_number = particle_entity[index]
+                    edgecolor = self.entity_color_dict[entity_number]
+                else:
+                    edgecolor = "red"
+
+                c1 = Circle((x1,x2), r, edgecolor=edgecolor, facecolor=facecolor, alpha = alpha)
+                circle_col.append(c1)
+            
+            circle_collection = PatchCollection(circle_col, match_original=True)
+            plt.gca().add_collection(circle_collection)
+            
+
                 
             
 

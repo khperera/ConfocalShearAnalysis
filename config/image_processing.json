@@ -2,7 +2,7 @@
     
     "DataReadLocation": "./data/RawData_2p_2strain_1Hz/",
     "DataSaveLocation" : "./data/RawData_2p_2strain_1Hz_processed/",
-    "3DParticleData" : "./data/RawData_2p_2strain_1Hz/particledata.csv",
+    "3DParticleData" : "./data/particle_data/particledata.csv",
     "segment_config":
       {
         "bilateral_filter_marker": false,
