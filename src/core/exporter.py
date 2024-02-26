@@ -6,6 +6,7 @@ import json
 import csv
 import cv2
 import numpy.typing as npt
+import numpy as np
 from skimage import io,color
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
@@ -107,7 +108,7 @@ class ImageExporter:
         #we can make dashed lines for user input data versus fit data. The color will indicate the entity. So each entity will
         #have a unique color.
 
-        entity_neighbors, particle_entity, particle_input = classification_data
+        entity_neighbors, particle_entity, particle_input, particle_neighbors = classification_data
         i = False
         if i:
             circles = [Circle((x1,x2), r, edgecolor='red', facecolor='none') for index, x1, x2, r, i, i_mean, i_std in list(particle_data)]
@@ -116,14 +117,17 @@ class ImageExporter:
         else:
             
             colormap = cm.plasma 
-            max_value = 5
-            neighbor_image = False               
+            max_value = 20
+            neighbor_image = True               
 
             for entity in entity_neighbors:
                 if not entity in self.entity_color_dict:
                     if neighbor_image:
+
                         neighbor_normalized = min(len(entity_neighbors[entity])/max_value,1)
-                        self.entity_color_dict[entity] = colormap(neighbor_normalized)
+
+
+                        self.entity_color_dict[entity] = facecolor = ( 1-neighbor_normalized, 0.2, neighbor_normalized)
  
                     else:
                         self.entity_color_dict[entity] = (random.random(),random.random(),random.random())
@@ -137,33 +141,30 @@ class ImageExporter:
                     facecolor = "green"
                     alpha = 0.5
                 else:
-                    facecolor = "none"
-                    alpha = 1
+                    if index in particle_neighbors:
+                        neighbors = particle_neighbors[index]
+                        number_neighbors = min(len(neighbors)/max_value,1)
+                        facecolor = (0.2, 1-number_neighbors, number_neighbors)
+                        #facecolor = colormap(min(len(neighbors)/max_value,1))
+                        alpha = 0.6
+                    else:
+                        facecolor = (1,1,0.1)
+                        alpha = 0
                 
                 if index in particle_entity:
                     entity_number = particle_entity[index]
                     edgecolor = self.entity_color_dict[entity_number]
                 else:
                     edgecolor = "red"
+                    facecolor = "none"
+                    alpha = 1
 
-                c1 = Circle((x1,x2), r, edgecolor=edgecolor, facecolor=facecolor, alpha = alpha)
+                c1 = Circle((x1,x2), r, edgecolor=edgecolor, facecolor=facecolor, linewidth = 5, alpha = alpha)
                 circle_col.append(c1)
             
             circle_collection = PatchCollection(circle_col, match_original=True)
             plt.gca().add_collection(circle_collection)
             
-
-                
-            
-
-
-
-
-
-
-
-
-
 
 
 

@@ -45,7 +45,7 @@ class ImageSegment():
 
 
         #image segmentation variables.
-        self.alpha = 0.75
+        self.alpha = 0.2
         self.beta = 1.2
         self.max_radius = 3
         self.balltree = None
@@ -62,6 +62,8 @@ class ImageSegment():
         self.ignore_list = []
         #entity_neighborlist
         self.entity_neighbors = {}
+        #cluster data (r,x,y,z,neighbors)
+        self.entity_info = []
 
         #input particle list. List particles to be colored when drawn.
         self.particle_in = []
@@ -86,6 +88,7 @@ class ImageSegment():
         self.generate_entity_data()
         self.find_entity_neighbors()
         self.filter_particles_ignorelist()
+        self.generate_cluster_information()
         dictionary_fit = image_holder.return_fit_dictionary()
         dictionary_fit["position"] = np.ndarray.tolist(self.particle_centers)
 
@@ -108,8 +111,67 @@ class ImageSegment():
 
         
 
+    def export_radius_neighbor_data(self):
+        """Exports a list of tuples to CSV. Radius vs number of neighbbors. Also exports to different
+        files the average, mediam radius and average, median number of neighbors"""
+        pass
+
+    def generate_cluster_information(self):
+        """Generates a list of radius, weighted x,y,z, vs number of neighborsf for each cluster"""
+        #contains the weighted radius, weighted xyz, and number of neighbors for each entity
+
+
+        for entity, value in self.entity_dict.items():
+            particle_list = value
+            list_of_radii = []
+            list_of_positions = []
+            weights = []
+            weighted_position = (0,0,0)
+            sum_radius2 = 0
+
+            for particle in particle_list:
+                rows_with_value = self.particle_centers[self.particle_centers[:, 0] == particle] 
+                radius = rows_with_value[0,4]
+                coordinates = rows_with_value[0,1:4].reshape(1,-1)
+                list_of_radii.append(radius)
+                list_of_positions.append(coordinates)
+
+                sum_radius2 = sum_radius2+radius**2
+                weights.append(radius**2)
+            weights = np.array(weights)
+            weights = weights/np.sum(weights)
+
+            radius_weighted = np.sum(np.array(list_of_radii)*weights)
+            
+            x_ = 0
+            y_ = 0 
+            z_ = 0
+            for count, coordinate in enumerate(list_of_positions):
+                x_ = coordinates[0]*weights[count] + x_
+                y_ = coordinates[1]*weights[count] + y_
+                z_ = coordinates[2]*weights[count] + z_
+
+            neighbors = len(self.entity_neighbors[entity])
+
+            self.entity_info.append([radius_weighted,x_,y_,z_, neighbors])
+
+
+            
+
+
+
+
+
+            
+            
+
+
+
 ####################################################################################################
 #filters
+    
+
+    
 
     def create_kernel(self) -> None:
         """Creates deconvulusion kernel"""
@@ -120,7 +182,7 @@ class ImageSegment():
         self.convert_to_scikit_image()
         self.create_kernel()
         finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
-        centers = finder(self.img, removeOverlap=False,deconvKernel=self.kernel)
+        centers = finder(self.img, maxedge = -1,removeOverlap=False,deconvKernel=self.kernel)
         rescale_intensity = True
         if rescale_intensity:
             s = rescale.radius2sigma(centers[:,-2], dim=3)
@@ -164,7 +226,7 @@ class ImageSegment():
             circles_in_dim = self.circles_in_dimension(x=pixel_dim)
             #print(circles_in_dim.shape, "shapein")
             holder_yz = holder.ImageHolder(yz_cut,image_type=image_type,name= name)
-            saver.save_3d_cuts(holder_yz,circles_in_dim, [self.entity_neighbors,self.particle_entity,self.particle_in])
+            saver.save_3d_cuts(holder_yz,circles_in_dim, [self.entity_neighbors,self.particle_entity,self.particle_in, self.particle_dict])
 
         for y_div in range(y_divs):
             pixel_dim = int(y_div*y_size)
@@ -172,7 +234,7 @@ class ImageSegment():
             name = "xzcut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(y=pixel_dim)
             holder_xz = holder.ImageHolder(xz_cut,image_type=image_type,name= name)
-            saver.save_3d_cuts(holder_xz,circles_in_dim, [self.entity_neighbors,self.particle_entity,self.particle_in])
+            saver.save_3d_cuts(holder_xz,circles_in_dim, [self.entity_neighbors,self.particle_entity,self.particle_in, self.particle_dict])
 
         for z_div in range(z_divs):
             pixel_dim = int(z_div*z_size)
@@ -180,7 +242,7 @@ class ImageSegment():
             name = "xycut_" + str(pixel_dim) + "pixels"
             circles_in_dim = self.circles_in_dimension(z=pixel_dim)
             holder_xy = holder.ImageHolder(xy_cut,image_type=image_type,name= name)
-            saver.save_3d_cuts(holder_xy,circles_in_dim, [self.entity_neighbors,self.particle_entity,self.particle_in])
+            saver.save_3d_cuts(holder_xy,circles_in_dim, [self.entity_neighbors,self.particle_entity,self.particle_in, self.particle_dict])
         
         self.plot_histograms()
         saver.save_matplotlib_plot("Intensity plots_postfilter")
@@ -370,7 +432,7 @@ class ImageSegment():
                 self.ignore_list.append(particle_index)
                 continue
 
-            if (radius >= distance - radius_2*self.alpha):
+            if (radius >= (distance - radius_2*self.alpha) or radius_2 >= (distance - radius*self.alpha)):
                 self.entity_dict[entity_number].append(particle_index)
                 self.identify_entities(particle=particle_index, entity_number=entity_number)
                 continue
