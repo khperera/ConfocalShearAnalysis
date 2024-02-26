@@ -130,7 +130,11 @@ class ImageSegment():
             sum_radius2 = 0
 
             for particle in particle_list:
-                rows_with_value = self.particle_centers[self.particle_centers[:, 0] == particle] 
+                
+                rows_with_value = self.particle_centers[self.particle_centers[:, 0] == particle]
+                if rows_with_value.shape[0] == 0:
+                    print("nothing found")
+                    continue
                 radius = rows_with_value[0,4]
                 coordinates = rows_with_value[0,1:4].reshape(1,-1)
                 list_of_radii.append(radius)
@@ -147,9 +151,9 @@ class ImageSegment():
             y_ = 0 
             z_ = 0
             for count, coordinate in enumerate(list_of_positions):
-                x_ = coordinates[0]*weights[count] + x_
-                y_ = coordinates[1]*weights[count] + y_
-                z_ = coordinates[2]*weights[count] + z_
+                x_ = coordinates[0,0]*weights[count] + x_
+                y_ = coordinates[0,1]*weights[count] + y_
+                z_ = coordinates[0,2]*weights[count] + z_
 
             neighbors = len(self.entity_neighbors[entity])
 
