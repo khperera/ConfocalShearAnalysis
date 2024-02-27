@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from matplotlib.collections import PatchCollection
 from matplotlib.colors import Normalize
+import pandas as pd
 import matplotlib.cm as cm
 from src.core import holder
 from src.utils import tools
@@ -138,7 +139,7 @@ class ImageExporter:
             circle_col = []
             for index, x1, x2, r, i, i_mean, i_std in list(particle_data):
                 if index in particle_input:
-                    facecolor = "green"
+                    facecolor = "purple"
                     alpha = 0.5
                 else:
                     if index in particle_neighbors:
@@ -159,7 +160,7 @@ class ImageExporter:
                     facecolor = "none"
                     alpha = 1
 
-                c1 = Circle((x1,x2), r, edgecolor=edgecolor, facecolor=facecolor, linewidth = 5, alpha = alpha)
+                c1 = Circle((x1,x2), r, edgecolor=edgecolor, facecolor=facecolor, linewidth = 1, alpha = alpha)
                 circle_col.append(c1)
             
             circle_collection = PatchCollection(circle_col, match_original=True)
@@ -178,3 +179,16 @@ class ImageExporter:
 
         self.make_dir(save_dir)
         plt.savefig(save_location)
+
+
+    def save_pd_as_csv(self, dataframe = None, name: str = "default"):
+        """Saves a pandas dataframe as a CSV file"""
+        save_dir = self.image_save_location+str("plot")+"Image/"
+        self.last_saved_location = save_dir
+
+        save_location = save_dir + name + ".csv"
+
+        self.make_dir(save_dir)
+
+        dataframe.to_csv(save_location)
+

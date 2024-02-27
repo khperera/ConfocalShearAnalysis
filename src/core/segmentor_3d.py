@@ -8,6 +8,7 @@ from skimage import filters
 from skimage import img_as_ubyte
 from skimage.transform import rescale as scale1
 from sklearn.neighbors import BallTree
+import pandas as pd
 import skimage as ski
 import scipy 
 import matplotlib.pyplot as plt
@@ -64,6 +65,7 @@ class ImageSegment():
         self.entity_neighbors = {}
         #cluster data (r,x,y,z,neighbors)
         self.entity_info = []
+        self.entity_info_df = ""
 
         #input particle list. List particles to be colored when drawn.
         self.particle_in = []
@@ -89,6 +91,9 @@ class ImageSegment():
         self.find_entity_neighbors()
         self.filter_particles_ignorelist()
         self.generate_cluster_information()
+        self.export_radius_neighbor_data()
+        self.plot_entity_histograms()
+
         dictionary_fit = image_holder.return_fit_dictionary()
         dictionary_fit["position"] = np.ndarray.tolist(self.particle_centers)
 
@@ -111,10 +116,49 @@ class ImageSegment():
 
         
 
-    def export_radius_neighbor_data(self):
+    def export_radius_neighbor_data(self, xbuffer: int = 15, ybuffer: int = 15, zbuffer: int = 15):
         """Exports a list of tuples to CSV. Radius vs number of neighbbors. Also exports to different
         files the average, mediam radius and average, median number of neighbors"""
-        pass
+        self.entity_info_df = pd.DataFrame(self.entity_info, columns = ["radius","x","y","z", "neighbors"])
+
+        x_min, x_max = self.entity_info_df['x'].min() + xbuffer, self.entity_info_df['x'].max() - xbuffer
+        y_min, y_max = self.entity_info_df['y'].min() + ybuffer, self.entity_info_df['y'].max() - ybuffer
+        z_min, z_max = self.entity_info_df['z'].min() + zbuffer, self.entity_info_df['z'].max() - zbuffer
+
+        # Filter the DataFrame based on the calculated min and max with buffers
+        self.entity_info_df = self.entity_info_df[
+            (self.entity_info_df['x'] >= x_min) & (self.entity_info_df['x'] <= x_max) &
+            (self.entity_info_df['y'] >= y_min) & (self.entity_info_df['y'] <= y_max) &
+            (self.entity_info_df['z'] >= z_min) & (self.entity_info_df['z'] <= z_max)
+        ]
+        
+        #make a saver and send to be saved.
+        saver = exporter.ImageExporter(config_file_path=self.config_file_path)
+        
+        saver.save_pd_as_csv(dataframe = self.entity_info_df, name = "neighborposRadiusmapping")
+
+
+    def plot_entity_histograms(self):
+        """Generates a histogram of neighbors vs radius"""
+        fig, axs = plt.subplots()
+
+        
+
+
+
+
+        # Now plot the histogram
+        axs.hist2d(self.entity_info_df["radius"], self.entity_info_df["neighbors"], bins = 100, norm= mpl.colors.LogNorm())  # Adjust bins as needed
+
+        axs.set_title('Neighbor Map for Particles')
+        axs.set_xlabel("Radii (micron)")
+        axs.set_ylabel("Neighbors")
+        #axs.set_xlim([-1, 60])  # Replace xmin and xmax with your desired values
+        #axs.set_ylim([-1, 30]) 
+
+        saver = exporter.ImageExporter(config_file_path=self.config_file_path)
+        saver.save_matplotlib_plot("NeighborsvsRadius")
+
 
     def generate_cluster_information(self):
         """Generates a list of radius, weighted x,y,z, vs number of neighborsf for each cluster"""
@@ -126,7 +170,6 @@ class ImageSegment():
             list_of_radii = []
             list_of_positions = []
             weights = []
-            weighted_position = (0,0,0)
             sum_radius2 = 0
 
             for particle in particle_list:
@@ -464,7 +507,7 @@ class ImageSegment():
                         unique_neighbors.append(neighboring_entity)
             
             self.entity_neighbors[entity] = unique_neighbors
-            print(len(unique_neighbors))
+            print((unique_neighbors))
             
         
 
