@@ -43,6 +43,7 @@ class ImageSegment():
         self.kernel = None
         self.config_file_path= config_file_path
         self.particle_addition_save_location = config["3DParticleData"]
+        
 
 
         #image segmentation variables.
@@ -51,6 +52,7 @@ class ImageSegment():
         self.max_radius = 3
         self.balltree = None
         self.entity_indicator = 0
+        self.upper_intensity_std = config["segment_config"]["intensity_std"]
 
         #particledata_storage
         #stores the neighbors of each particle
@@ -112,7 +114,7 @@ class ImageSegment():
         self.particle_in = index_new
         new_particle_data = np.column_stack((index_new,input_array))
         #print(new_particle_data, new_particle_data.shape)
-        self.particle_centers = np.concatenate((self.particle_centers, new_particle_data), axis = 0)
+        #self.particle_centers = np.concatenate((self.particle_centers, new_particle_data), axis = 0)
 
         
 
@@ -586,7 +588,7 @@ class ImageSegment():
         """Uses various metrics to filter the particles by radius, edge intensity, average intensity, intensity deviation"""
         radius_threshold_high = 100
         radius_threshold_low = 0
-        std_dev_thresh_high = 0.23
+        std_dev_thresh_high = self.upper_intensity_std 
         mean_thresh_low = 0.3
 
         #filtered array is z,y,x, r, i, intensity_means, intensity_std
