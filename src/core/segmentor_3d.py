@@ -113,8 +113,9 @@ class ImageSegment():
         index_new = np.arange(max_index+1, max_index+1+rows)
         self.particle_in = index_new
         new_particle_data = np.column_stack((index_new,input_array))
-        #print(new_particle_data, new_particle_data.shape)
-        #self.particle_centers = np.concatenate((self.particle_centers, new_particle_data), axis = 0)
+        self.particle_centers = np.array(self.particle_centers)
+        print(new_particle_data, new_particle_data.shape, self.particle_centers.shape)
+        self.particle_centers = np.concatenate((self.particle_centers, new_particle_data), axis = 0)
 
         
 
