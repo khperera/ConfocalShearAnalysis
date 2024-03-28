@@ -58,12 +58,12 @@ class ImageSegment():
         self.img_shape = image_holder.return_image_size()
         img_info["image_type"] = "Segment"
         self.convert_to_single_channel(channel = 1)
-
         #self.difference_guassians(15,9)
         if self.histogram_equilization_marker:
             self.histogram_equilization(**self.histogram_equilization_parameters)
         #self.cutoff_threshold()
         #self.difference_guassians(sigma_1=5,sigma_2=11, simga_image= 9)
+
         if self.bilateral_filter_marker:
             self.bilateral_filter(**self.bilateral_filter_parameters)
         if self.canny_filter_marker:
@@ -94,6 +94,19 @@ class ImageSegment():
 ####################################################################################################
 #filters
 
+    #implements a log rescale
+    def log_transform(self):
+        # Convert image to a float32 for the log operation, avoiding log(0) by adding 1
+        img_float32 = np.float32(self.img + 1)
+
+        # Apply log transformation
+        log_transformed = cv2.log(img_float32)
+
+        # Normalize the image to bring the pixel values between 0 and 255
+        normalized = cv2.normalize(log_transformed, None, 0, 255, cv2.NORM_MINMAX)
+
+        # Convert back to an 8-bit image to display it
+        self.img = np.uint8(normalized)
 
     #bilateral filter wrapper
     def bilateral_filter(self, d: int = 10, sigma_color: int = 75,
@@ -224,7 +237,7 @@ class ImageSegment():
 #utils
 
 
-    def convert_to_single_channel(self, channel = 1):
+    def convert_to_single_channel(self, channel = 2):
         """
         #checks to see if an image is of the type uint8. Chooses the correct channel as well
         #channel 0,1,2 is b,g,r

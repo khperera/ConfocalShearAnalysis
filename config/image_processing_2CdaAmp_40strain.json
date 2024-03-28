@@ -1,16 +1,16 @@
 {
     
-    "DataReadLocation": "./data/RawData_2p_2strain_1Hz/",
-    "DataSaveLocation" : "./data/RawData_2p_2strain_1Hz_processed/",
+    "DataReadLocation": "./data/RawImage_2cda_40strain/",
+    "DataSaveLocation" : "./data/RawImage_2cda_40strain_save/",
     "3DParticleData" : "./data/particle_data/particledata.csv",
     "segment_config":
       {
-        "bilateral_filter_marker": true,
+        "bilateral_filter_marker": false,
         "bilateral_filter_parameters": 
         {
-            "d":7,
-            "sigma_color":60,
-            "sigma_space":60
+            "d":9,
+            "sigma_color":150,
+            "sigma_space":59
         },
         "adaptive_filter_marker": false,
         "adaptive_filter_parameters":
@@ -39,12 +39,12 @@
         "histogram_equilization_marker": true,
         "histogram_equilization_parameters":
         {
-          "method" : 0,
-          "cliplimit" : 4,
-          "tile_grid_size" : 51
+          "method" : 1,
+          "cliplimit" : 2.0,
+          "tile_grid_size" : 5
         },
         "display_original_img" : false,
-        "intensity_std" : 0.23
+        "intensity_std" : 0.2
 
       }
     

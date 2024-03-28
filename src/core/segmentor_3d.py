@@ -115,7 +115,7 @@ class ImageSegment():
         new_particle_data = np.column_stack((index_new,input_array))
         self.particle_centers = np.array(self.particle_centers)
         print(new_particle_data, new_particle_data.shape, self.particle_centers.shape)
-        self.particle_centers = np.concatenate((self.particle_centers, new_particle_data), axis = 0)
+        #self.particle_centers = np.concatenate((self.particle_centers, new_particle_data), axis = 0)
 
         
 
@@ -225,18 +225,18 @@ class ImageSegment():
 
     def create_kernel(self) -> None:
         """Creates deconvulusion kernel"""
-        self.kernel = get_deconv_kernel(self.img, pxZ = 1, pxX=1)
+        self.kernel = get_deconv_kernel(self.img, k= 0.1, pxZ = 1, pxX=1)
 
     def find_particle_centers(self)-> None:
         """Uses prytrack to find particle centers"""
         self.convert_to_scikit_image()
         self.create_kernel()
         finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
-        centers = finder(self.img, maxedge = -1,removeOverlap=False,deconvKernel=self.kernel)
+        centers = finder(self.img, k=1.6, maxedge = -1,removeOverlap=False,deconvKernel=self.kernel)
         rescale_intensity = True
         if rescale_intensity:
             s = rescale.radius2sigma(centers[:,-2], dim=3)
-            bonds, dists = rescale.get_bonds(positions=centers[:,:-2], radii=centers[:,-2], maxdist=3.0)
+            bonds, dists = rescale.get_bonds(positions=centers[:,:-2], radii=centers[:,-2], maxdist=30)
             brights1 = rescale.solve_intensities(s, bonds, dists, centers[:,-1])
             radii1 = rescale.global_rescale_intensity(s, bonds, dists, brights1)
         else:
@@ -256,7 +256,7 @@ class ImageSegment():
         return particledata
 
 
-    def save_cuts(self, x_divs = 50, y_divs = 50, z_divs = 50, image_type = "3D_cut"):
+    def save_cuts(self, x_divs = 25, y_divs = 25, z_divs = 25, image_type = "3D_cut"):
         """Call after segmenting and getting particle data
         Saves cuts and displays circles on them, saves to holder then exports"""
         img_size = self.img.shape
@@ -299,7 +299,7 @@ class ImageSegment():
 
         
 
-    def squish_axis(self, x_squish: float = 0.75, y_squish: float = 0.75, z_squish: float =1):
+    def squish_axis(self, x_squish: float = 0.7, y_squish: float = 0.7, z_squish: float =1):
         self.img = scale1(self.img, (z_squish,x_squish,y_squish), anti_aliasing = True )
 
 
