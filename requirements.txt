@@ -10,3 +10,4 @@ numba >= 0.0.1
 matplotlib >= 0.0.0
 mayavi >= 0.0.0
 scikit-image >= 0.0.0
+scikit-learn >= 0.0.0

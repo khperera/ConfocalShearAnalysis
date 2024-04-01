@@ -39,7 +39,7 @@
       "histogram_equilization_parameters":
       {
         "method" : 0,
-        "cliplimit" : 2.0,
+        "cliplimit" : 80,
         "tile_grid_size" : 8
       }
     }

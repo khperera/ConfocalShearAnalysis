@@ -221,11 +221,11 @@ class ImageSegment():
 #filters
     
 
-    
+    #k = 1, maxdist = 30
 
     def create_kernel(self) -> None:
         """Creates deconvulusion kernel"""
-        self.kernel = get_deconv_kernel(self.img, k= 0.1, pxZ = 1, pxX=1)
+        self.kernel = get_deconv_kernel(self.img, k= 0.3, pxZ = 1, pxX=1)
 
     def find_particle_centers(self)-> None:
         """Uses prytrack to find particle centers"""
@@ -236,7 +236,7 @@ class ImageSegment():
         rescale_intensity = True
         if rescale_intensity:
             s = rescale.radius2sigma(centers[:,-2], dim=3)
-            bonds, dists = rescale.get_bonds(positions=centers[:,:-2], radii=centers[:,-2], maxdist=30)
+            bonds, dists = rescale.get_bonds(positions=centers[:,:-2], radii=centers[:,-2], maxdist=10)
             brights1 = rescale.solve_intensities(s, bonds, dists, centers[:,-1])
             radii1 = rescale.global_rescale_intensity(s, bonds, dists, brights1)
         else:

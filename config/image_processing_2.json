@@ -1,7 +1,7 @@
 {
     
     "DataReadLocation": "./data/RawData_2p_2strain_1Hz/",
-    "DataSaveLocation" : "./data/RawData_2p_2strain_1Hz_processed/",
+    "DataSaveLocation" : "./data/RawData_2p_2strain_1Hz_processed_lessequili/",
     "3DParticleData" : "./data/particle_data/particledata.csv",
     "segment_config":
       {
@@ -40,7 +40,7 @@
         "histogram_equilization_parameters":
         {
           "method" : 1,
-          "cliplimit" : 7,
+          "cliplimit" : 5,
           "tile_grid_size" : 9
         },
         "display_original_img" : false,

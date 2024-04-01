@@ -59,13 +59,20 @@ class ImageSegment():
         img_info["image_type"] = "Segment"
         self.convert_to_single_channel(channel = 1)
         #self.difference_guassians(15,9)
+        if self.bilateral_filter_marker:
+            self.bilateral_filter(**self.bilateral_filter_parameters)
         if self.histogram_equilization_marker:
             self.histogram_equilization(**self.histogram_equilization_parameters)
+        #self.median_filter()
+        if self.bilateral_filter_marker:
+            self.bilateral_filter(**self.bilateral_filter_parameters)
+        if self.histogram_equilization_marker:
+            self.histogram_equilization(method = 1, cliplimit=9, tile_grid_size=4)
+        self.median_filter()
         #self.cutoff_threshold()
         #self.difference_guassians(sigma_1=5,sigma_2=11, simga_image= 9)
 
-        if self.bilateral_filter_marker:
-            self.bilateral_filter(**self.bilateral_filter_parameters)
+
         if self.canny_filter_marker:
             self.canny_filter(**self.canny_filter_parameters)
 
@@ -93,6 +100,12 @@ class ImageSegment():
        
 ####################################################################################################
 #filters
+
+    #def mask_and_histogramequalize(self):
+
+
+    def median_filter(self, kernel_size = 5):
+        self.img = cv2.medianBlur(self.img, kernel_size)
 
     #implements a log rescale
     def log_transform(self):
@@ -140,7 +153,7 @@ class ImageSegment():
         """Applies openCV's canny filter method"""
         self.img = cv2.Canny(self.img,threshold1=threshold_1,threshold2=threshold_2)
 
-    def histogram_equilization(self, method: int = 0, cliplimit: float = 2.0,
+    def histogram_equilization(self, method: int = 0, cliplimit: float = 0.3,
                                 tile_grid_size: int = 8) -> None:
         """Applies either histogram equilization or adaptive based on input parameters"""
         if method ==0 :
