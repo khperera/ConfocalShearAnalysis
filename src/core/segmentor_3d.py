@@ -106,16 +106,20 @@ class ImageSegment():
     def load_particle_data(self):
         """Loads particle data from CSV. In form, x, y, z, r, i """
         input_array = np.genfromtxt(self.particle_addition_save_location, delimiter=",")
-        #print(input_array)
-        #print(input_array.shape)
-        rows = input_array.shape[0]
+        print(input_array.shape)
+        if input_array.ndim == 1:
+            rows = 1
+        else:
+            rows = input_array.shape[0]
         max_index = np.array(self.particle_centers).max(axis=0)[0]
         index_new = np.arange(max_index+1, max_index+1+rows)
+
         self.particle_in = index_new
+        print(index_new, input_array)
         new_particle_data = np.column_stack((index_new,input_array))
         self.particle_centers = np.array(self.particle_centers)
         print(new_particle_data, new_particle_data.shape, self.particle_centers.shape)
-        #self.particle_centers = np.concatenate((self.particle_centers, new_particle_data), axis = 0)
+        self.particle_centers = np.concatenate((self.particle_centers, new_particle_data), axis = 0)
 
         
 
