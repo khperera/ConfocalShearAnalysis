@@ -59,16 +59,15 @@ class ImageSegment():
         img_info["image_type"] = "Segment"
         self.convert_to_single_channel(channel = 1)
         #self.difference_guassians(15,9)
-        if self.bilateral_filter_marker:
-            self.bilateral_filter(**self.bilateral_filter_parameters)
-        if self.histogram_equilization_marker:
-            self.histogram_equilization(**self.histogram_equilization_parameters)
         #self.median_filter()
-        if self.bilateral_filter_marker:
-            self.bilateral_filter(**self.bilateral_filter_parameters)
+        
+        #if self.histogram_equilization_marker:
+        #    self.histogram_equilization(**self.histogram_equilization_parameters)
+        #self.median_filter()
+
         if self.histogram_equilization_marker:
-            self.histogram_equilization(method = 1, cliplimit=9, tile_grid_size=4)
-        self.median_filter()
+            self.histogram_equilization(method = 0, cliplimit=3, tile_grid_size=29)
+        #self.bilateral_filter()
         #self.cutoff_threshold()
         #self.difference_guassians(sigma_1=5,sigma_2=11, simga_image= 9)
 

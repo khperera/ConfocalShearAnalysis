@@ -82,6 +82,9 @@ class ImageSegment():
         """Given the config file, applies segmentation across all images in stack"""
 
         self.img = image_holder.return_image()
+        self.median_filter()
+        self.adaptive_hist()
+        #self.median_filter()
         self.squish_axis()
         self.find_particle_centers()
         self.load_particle_data()
@@ -224,6 +227,16 @@ class ImageSegment():
 ####################################################################################################
 #filters
     
+    def adaptive_hist(self, kernel = 25):
+        self.img = ski.exposure.equalize_adapthist(self.img, kernel_size=kernel)
+
+    def median_filter(self, radius = 3):
+        element = ski.morphology.ball(radius)
+        self.img = ski.filters.median(self.img, footprint=element)
+
+
+
+
 
     #k = 1, maxdist = 30
 

@@ -2,7 +2,8 @@
 from src.core import collection, viewer
 from src.utils import tools
 def main():
-    list_of_config = ["./config/image_processing.json","./config/image_processing_2.json"]
+    list_of_config = ["./config/image_processing_2CdaAmp_40strain.json","./config/image_processing_2CdaAmp_63strain.json",
+                      "./config/image_processing_2CdaAmp_200strain.json"]
     load_from_json = False
 
 
