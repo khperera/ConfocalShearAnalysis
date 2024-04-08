@@ -144,6 +144,7 @@ class ImageCollection():
         image_segmentor.apply_segmentation(self.holder_3d)
         self.particle_data3d = image_segmentor.return_particledata()
         image_segmentor.save_cuts()
+        #image_segmentor.napari_viewer()
 
     def return_3d_particledata(self):
         """returns the 3d particle data"""

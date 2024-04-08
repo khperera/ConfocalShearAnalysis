@@ -11,3 +11,4 @@ matplotlib >= 0.0.0
 mayavi >= 0.0.0
 scikit-image >= 0.0.0
 scikit-learn >= 0.0.0
+napari[all] >= 0.0.0

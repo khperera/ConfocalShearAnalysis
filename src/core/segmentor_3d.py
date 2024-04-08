@@ -8,6 +8,7 @@ from skimage import filters
 from skimage import img_as_ubyte
 from skimage.transform import rescale as scale1
 from sklearn.neighbors import BallTree
+import napari
 import pandas as pd
 import skimage as ski
 import scipy 
@@ -86,12 +87,14 @@ class ImageSegment():
         self.adaptive_hist()
         #self.median_filter()
         self.squish_axis()
+        
         self.find_particle_centers()
         self.load_particle_data()
         self.sample_spheres(samples = 1000)
         self.save_cuts(image_type="3D_cut_priorfilter")
         #particle_centers changes shape after prev Operation
         self.filter_particles()
+        #self.napari_viewer()
         self.generate_entity_data()
         self.find_entity_neighbors()
         self.filter_particles_ignorelist()
@@ -146,6 +149,18 @@ class ImageSegment():
         saver = exporter.ImageExporter(config_file_path=self.config_file_path)
         
         saver.save_pd_as_csv(dataframe = self.entity_info_df, name = "neighborposRadiusmapping")
+
+    def napari_viewer(self):
+        viewer = napari.view_image(self.img, name = "Image Stack")
+        
+        particle_centers = self.particle_centers[:,1:4]
+        particle_centers = particle_centers[:,[2,1,0]]
+        #radii = self.particle_centers[:,4:5]
+        radii = self.particle_centers[:, 4].flatten()
+
+        viewer.add_points(particle_centers, size=radii*2, name='Spheres', face_color='red')
+        
+        napari.run()
 
 
     def plot_entity_histograms(self):
@@ -242,14 +257,14 @@ class ImageSegment():
 
     def create_kernel(self) -> None:
         """Creates deconvulusion kernel"""
-        self.kernel = get_deconv_kernel(self.img, k= 0.3, pxZ = 1, pxX=1)
+        self.kernel = get_deconv_kernel(self.img, k= 0.1, pxZ = 1, pxX=1)
 
     def find_particle_centers(self)-> None:
         """Uses prytrack to find particle centers"""
         self.convert_to_scikit_image()
         self.create_kernel()
         finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
-        centers = finder(self.img, k=1.6, maxedge = -1,removeOverlap=False,deconvKernel=self.kernel)
+        centers = finder(self.img, k=1.8, maxedge = -1,removeOverlap=False,deconvKernel=self.kernel)
         rescale_intensity = True
         if rescale_intensity:
             s = rescale.radius2sigma(centers[:,-2], dim=3)
@@ -273,7 +288,7 @@ class ImageSegment():
         return particledata
 
 
-    def save_cuts(self, x_divs = 25, y_divs = 25, z_divs = 25, image_type = "3D_cut"):
+    def save_cuts(self, x_divs = 50, y_divs = 50, z_divs = 25, image_type = "3D_cut"):
         """Call after segmenting and getting particle data
         Saves cuts and displays circles on them, saves to holder then exports"""
         img_size = self.img.shape
