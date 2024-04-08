@@ -187,8 +187,11 @@ class ImageExporter:
         self.last_saved_location = save_dir
 
         save_location = save_dir + name + ".csv"
+        name2 = self.image_save_location.split("/")[-2]+".csv"
+        save_location_alt = "./data/AmplitudeSweeps/AmplitudeSweeps_ParticleData/FinalData/"+name2
 
-        self.make_dir(save_dir)
+        ### CHANGE THIS AND MAKE IT PULL FROM A CONFIG
+        self.make_dir("./data/AmplitudeSweeps/AmplitudeSweeps_ParticleData/FinalData/")
 
-        dataframe.to_csv(save_location)
+        dataframe.to_csv(save_location_alt)
 

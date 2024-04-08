@@ -2,8 +2,11 @@
 from src.core import collection, viewer
 from src.utils import tools
 def main():
-    list_of_config = ["./config/image_processing_2CdaAmp_40strain.json","./config/image_processing_2CdaAmp_63strain.json",
-                      "./config/image_processing_2CdaAmp_200strain.json"]
+    list_of_config = ["./config/image_processing_2CdaAmp_1000strain.json","./config/image_processing_2CdaAmp_630strain.json",
+                      "./config/image_processing_2CdaAmp_63strain.json", "./config/image_processing_2CdaAmp_100strain.json",
+                      "./config/image_processing_2CdaAmp_200strain.json", "./config/image_processing_2CdaAmp_50strain.json",
+                      "./config/image_processing_2CdaAmp_1strain.json", "./config/image_processing_2CdaAmp_10strain.json",
+                      "./config/image_processing_2CdaAmp_50strain.json"]
     load_from_json = False
 
 
