@@ -263,7 +263,7 @@ class ImageSegment():
         """Uses prytrack to find particle centers"""
         self.convert_to_scikit_image()
         self.create_kernel()
-        finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=4)
+        finder = MultiscaleBlobFinder(self.img.shape, Octave0=False, nbOctaves=6)
         centers = finder(self.img, k=1.8, maxedge = -1,removeOverlap=False,deconvKernel=self.kernel)
         rescale_intensity = True
         if rescale_intensity:
