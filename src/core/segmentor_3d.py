@@ -89,7 +89,7 @@ class ImageSegment():
         self.squish_axis()
         
         self.find_particle_centers()
-        self.load_particle_data()
+        #self.load_particle_data()
         self.sample_spheres(samples = 1000)
         self.save_cuts(image_type="3D_cut_priorfilter")
         #particle_centers changes shape after prev Operation
@@ -144,6 +144,8 @@ class ImageSegment():
             (self.entity_info_df['y'] >= y_min) & (self.entity_info_df['y'] <= y_max) &
             (self.entity_info_df['z'] >= z_min) & (self.entity_info_df['z'] <= z_max)
         ]
+
+        self.entity_info_df.drop_duplicates(subset=["x","y"], keep = "first", inplace = True)
         
         #make a saver and send to be saved.
         saver = exporter.ImageExporter(config_file_path=self.config_file_path)
@@ -527,7 +529,7 @@ class ImageSegment():
 
     def find_entity_neighbors(self):
         """Iterates through all the entities and find their neighbors"""
-
+        
         for entity in self.entity_dict:
             
             unique_neighbors = []
